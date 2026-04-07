@@ -1,0 +1,70 @@
+// constant.js
+import { getToken } from "../utils/jwt-helper";
+
+export const API_BASE_URL = "http://localhost:8080";
+
+export const API_URLS = {
+  // Existing (keep yours)
+  GET_PRODUCTS: "/api/products",
+  GET_PRODUCT: (id) => `/api/product/${id}`,
+  GET_CATEGORIES: "/api/category",
+  GET_CATEGORY: (id) => `/api/category/${id}`,
+  GET_ORDERS: "/api/admin/orders",
+  CANCEL_ORDER: (id) => `/api/admin/orders/${id}/cancel`,
+
+  // NEW AUTH ENDPOINTS
+  REGISTER: "/api/v1/auth/register",
+  LOGIN: "/api/v1/auth/login",
+  REFRESH_TOKEN: "/api/v1/auth/refresh",
+
+  // NEW ANALYTICS ENDPOINTS
+  ANALYTICS_EVENT: "/api/v1/analytics/event",
+  ADMIN_REVENUE_TRENDS: "/api/v1/analytics/admin/revenue-trends",
+  ADMIN_TOP_WISHLISTED: "/api/v1/analytics/admin/top-wishlisted",
+  ADMIN_VISITOR_STATS: "/api/v1/analytics/admin/visitor-stats",
+  ADMIN_TOP_SELLERS: "/api/v1/analytics/admin/top-sellers",
+
+  // NEW CATEGORIES (Admin)
+  CREATE_CATEGORY: "/api/v1/categories",
+  UPDATE_CATEGORY: (id) => `/api/v1/categories/${id}`,
+  DELETE_CATEGORY: (id) => `/api/v1/categories/${id}`,
+
+  // NEW FILE UPLOAD
+  UPLOAD_FILE: "/api/v1/files/upload",
+  UPLOAD_MULTIPLE: "/api/v1/files/upload-multiple",
+  DELETE_FILE: (publicId) => `/api/v1/files/delete?publicId=${encodeURIComponent(publicId)}`,
+  DELETE_FILE_BY_URL: (imageUrl) => `/api/v1/files/delete-by-url?imageUrl=${encodeURIComponent(imageUrl)}`,
+  EXTRACT_PUBLIC_ID: (url) => `/api/v1/files/extract-public-id?url=${encodeURIComponent(url)}`,
+  FILE_HEALTH: "/api/v1/files/health",
+
+  // NEW ORDERS (Buyer + Admin)
+  CREATE_ORDER: "/api/v1/orders",
+  GET_USER_ORDERS: "/api/v1/orders",
+  GET_ORDER_BY_ID: (id) => `/api/v1/orders/${id}`,
+  ADMIN_GET_ALL_ORDERS: "/api/v1/orders/admin",
+  ADMIN_UPDATE_ORDER_STATUS: (id, status) => `/api/v1/orders/${id}/status?status=${status}`,
+
+  // NEW PRODUCTS (enhanced)
+  GET_PRODUCTS_V2: "/api/v1/products",      // with filters, pagination
+  GET_PRODUCT_BY_ID_V2: (id) => `/api/v1/products/${id}`,
+  GET_PRODUCT_BY_SLUG_V2: (slug) => `/api/v1/products/slug/${slug}`,
+  GET_FEATURED_PRODUCTS: "/api/v1/products/featured",
+  CREATE_PRODUCT_V2: "/api/v1/products",
+  UPDATE_PRODUCT_V2: (id) => `/api/v1/products/${id}`,
+  DELETE_PRODUCT_V2: (id) => `/api/v1/products/${id}`,
+  FEATURE_PRODUCT_V2: (id) => `/api/v1/products/${id}/feature`,
+  UNFEATURE_PRODUCT_V2: (id) => `/api/v1/products/${id}/unfeature`,
+  TOGGLE_NEW_ARRIVAL: (id, newArrival) => `/api/v1/products/${id}/new-arrival?newArrival=${newArrival}`,
+
+  // NEW WISHLIST
+  GET_WISHLIST: "/api/v1/wishlist",
+  ADD_TO_WISHLIST: (productId) => `/api/v1/wishlist/${productId}`,
+  REMOVE_FROM_WISHLIST: (productId) => `/api/v1/wishlist/${productId}`,
+};
+
+export const getHeaders = () => {
+  const token = getToken(); // from your jwt-helper
+  return {
+    Authorization: `Bearer ${token}`,
+  };
+};
