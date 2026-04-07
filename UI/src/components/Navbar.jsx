@@ -42,10 +42,10 @@ export default function Navbar() {
       <div className="container mx-auto px-4 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 group">
-          <div className="w-10 h-10 bg-primary-accent rounded-lg flex items-center justify-center rotate-12 group-hover:rotate-0 transition-transform duration-300 neon-glow">
+          {/* <div className="w-10 h-10 bg-primary-accent rounded-lg flex items-center justify-center rotate-12 group-hover:rotate-0 transition-transform duration-300 neon-glow">
             <span className="font-black text-xl text-white italic">P</span>
-          </div>
-          <span className="text-2xl font-black tracking-tighter italic">
+          </div> */}
+          <span className="text-xl font-black tracking-tighter italic">
             PLUGGED
           </span>
         </Link>
