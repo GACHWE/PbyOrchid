@@ -5,12 +5,12 @@ export const API_BASE_URL = "http://localhost:8080";
 
 export const API_URLS = {
   // Existing (keep yours)
-  GET_PRODUCTS: "/api/products",
-  GET_PRODUCT: (id) => `/api/product/${id}`,
-  GET_CATEGORIES: "/api/category",
-  GET_CATEGORY: (id) => `/api/category/${id}`,
-  GET_ORDERS: "/api/admin/orders",
-  CANCEL_ORDER: (id) => `/api/admin/orders/${id}/cancel`,
+  GET_PRODUCTS: "/api/v1/products",
+  GET_PRODUCT: (id) => `/api/v1/product/${id}`,
+  GET_CATEGORIES: "/api/v1/categories",
+  GET_CATEGORY: (id) => `/api/v1/category/${id}`,
+  GET_ORDERS: "/api/v1/admin/orders",
+  CANCEL_ORDER: (id) => `/api/v1/admin/orders/${id}/cancel`,
 
   // NEW AUTH ENDPOINTS
   REGISTER: "/api/v1/auth/register",
@@ -62,9 +62,20 @@ export const API_URLS = {
   REMOVE_FROM_WISHLIST: (productId) => `/api/v1/wishlist/${productId}`,
 };
 
+// export const getHeaders = () => {
+//   const token = getToken(); // from your jwt-helper
+//   return {
+//     Authorization: `Bearer ${token}`,
+//   };
+// constant.js  ← replace the getHeaders function
 export const getHeaders = () => {
-  const token = getToken(); // from your jwt-helper
+  const token = getToken();
+ // Only add Authorization header when we actually have a real token
+  if (!token) {
+    return {};                    // no auth header → public endpoints still work
+  }
   return {
     Authorization: `Bearer ${token}`,
   };
+
 };

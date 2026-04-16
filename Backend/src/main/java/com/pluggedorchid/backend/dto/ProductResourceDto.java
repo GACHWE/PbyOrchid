@@ -4,6 +4,6 @@ import java.util.UUID;
 
 public record ProductResourceDto(
         UUID id,
-        String url,
-        String resourceType
+        String url
+//        String resourceType
 ) {}

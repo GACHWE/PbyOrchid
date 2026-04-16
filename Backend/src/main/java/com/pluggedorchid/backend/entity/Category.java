@@ -8,6 +8,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -29,6 +30,9 @@ public class Category {
 
     @Column(nullable = false, unique = true)
     private String slug;
+
+    @OneToMany(mappedBy = "category",cascade = CascadeType.ALL)
+    private List<CategoryType> categoryTypes;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

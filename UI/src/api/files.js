@@ -2,15 +2,44 @@
 import axios from "axios";
 import { API_BASE_URL, API_URLS, getHeaders } from "./constant";
 
-// Single file upload (multipart/form-data)
+// // Single file upload (multipart/form-data)
+// export const uploadFile = async (formData) => {
+//   const url = API_BASE_URL + API_URLS.UPLOAD_FILE;
+//   try {
+//     const response = await axios.post(url, formData, {
+//       headers: {
+//         ...getHeaders(),
+//         "Content-Type": "multipart/form-data",
+//       },
+//     });
+//     return response?.data;
+//   } catch (err) {
+//     throw new Error(err.response?.data?.error || err.message);
+//   }
+// };
+
+// // Multiple files upload
+// export const uploadMultipleFiles = async (formData) => {
+//   const url = API_BASE_URL + API_URLS.UPLOAD_MULTIPLE;
+//   try {
+//     const response = await axios.post(url, formData, {
+//       headers: {
+//         ...getHeaders(),
+//         "Content-Type": "multipart/form-data",
+//       },
+//     });
+//     return response?.data;
+//   } catch (err) {
+//     throw new Error(err.response?.data?.error || err.message);
+//   }
+// };
+
+// Single file upload
 export const uploadFile = async (formData) => {
   const url = API_BASE_URL + API_URLS.UPLOAD_FILE;
   try {
     const response = await axios.post(url, formData, {
-      headers: {
-        ...getHeaders(),
-        "Content-Type": "multipart/form-data",
-      },
+      headers: getHeaders(),           // ← only this line
     });
     return response?.data;
   } catch (err) {
@@ -23,17 +52,13 @@ export const uploadMultipleFiles = async (formData) => {
   const url = API_BASE_URL + API_URLS.UPLOAD_MULTIPLE;
   try {
     const response = await axios.post(url, formData, {
-      headers: {
-        ...getHeaders(),
-        "Content-Type": "multipart/form-data",
-      },
+      headers: getHeaders(),           // ← only this line
     });
     return response?.data;
   } catch (err) {
     throw new Error(err.response?.data?.error || err.message);
   }
 };
-
 export const deleteFileByPublicId = async (publicId) => {
   const url = API_BASE_URL + API_URLS.DELETE_FILE(publicId);
   try {

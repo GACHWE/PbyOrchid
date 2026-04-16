@@ -21,42 +21,6 @@ export const useAuthStore = create(
       isLoading: false,
       error: null,
 
-      // Login with email/password
-      // login: async (credentials) => {
-      //   set({ isLoading: true, error: null });
-      //   try {
-      //     const response = await loginAPI(credentials);
-      //     // response should contain accessToken and refreshToken
-      //     const { accessToken, refreshToken } = response;
-
-      //     // Store tokens in localStorage via helpers
-      //     setAccessToken(accessToken);
-      //     setRefreshToken(refreshToken);
-
-      //     // Decode token to get user info
-      //     const decoded = decodeToken(accessToken);
-      //     const user = {
-      //       id: decoded.userId || decoded.sub,
-      //       email: decoded.email || credentials.email,
-      //       name: decoded.name || credentials.email.split("@")[0],
-      //       role: decoded.authorities?.[0]?.replace("ROLE_", "") || "user",
-      //     };
-
-      //     set({
-      //       user,
-      //       accessToken,
-      //       refreshToken,
-      //       isAuthenticated: true,
-      //       isLoading: false,
-      //     });
-
-      //     return { success: true, user };
-      //   } catch (error) {
-      //     set({ error: error.message, isLoading: false });
-      //     return { success: false, error: error.message };
-      //   }
-      // },
-
       login: async (credentials) => {
         set({ isLoading: true, error: null });
         try {
@@ -67,7 +31,7 @@ export const useAuthStore = create(
 
           const decoded = decodeToken(accessToken);
           // Extract role from authorities (e.g., ["ROLE_ADMIN"] -> "admin")
-          const role = decoded.authorities?.[0]?.replace("ROLE_", "") || "user";
+          const role = decoded.role?.[0]?.replace("ROLE_", "") || "user";
 
           const user = {
             id: decoded.userId || decoded.sub,

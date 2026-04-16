@@ -18,8 +18,8 @@ public class ProductVariant {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    private String color;          // e.g., "Black/White"
-    private String size;           // e.g., "US 9", "EU 42"
+    private String color;
+    private String size;
     private Integer stockQuantity;
 
     @ManyToOne(fetch = FetchType.LAZY)
