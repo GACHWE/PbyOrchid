@@ -1,7 +1,6 @@
 package com.pluggedorchid.backend.service;
 
-import com.pluggedorchid.backend.dto.CategoryRequest;
-import com.pluggedorchid.backend.dto.CategoryResponse;
+import com.pluggedorchid.backend.dto.CategoryDto;
 import com.pluggedorchid.backend.entity.Category;
 import com.pluggedorchid.backend.exception.ResourceNotFoundException;
 import com.pluggedorchid.backend.mapper.CategoryMapper;
@@ -12,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,33 +20,33 @@ public class CategoryService {
     private final CategoryMapper categoryMapper;
 
     @Transactional(readOnly = true)
-    public List<CategoryResponse> getAllCategories() {
+    public List<CategoryDto> getAllCategories() {
         return categoryRepository.findAll().stream()
-                .map(categoryMapper::toResponse)
-                .collect(Collectors.toList());
+                .map(categoryMapper::toDto)
+                .toList();
     }
 
     @Transactional(readOnly = true)
-    public CategoryResponse getCategoryById(UUID id) {
+    public CategoryDto getCategoryById(UUID id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
-        return categoryMapper.toResponse(category);
+        return categoryMapper.toDto(category);
     }
 
     @Transactional
-    public CategoryResponse createCategory(CategoryRequest request) {
-        Category category = categoryMapper.toEntity(request);
+    public CategoryDto createCategory(CategoryDto dto) {
+        Category category = categoryMapper.toEntity(dto);
         category = categoryRepository.save(category);
-        return categoryMapper.toResponse(category);
+        return categoryMapper.toDto(category);
     }
 
     @Transactional
-    public CategoryResponse updateCategory(UUID id, CategoryRequest request) {
+    public CategoryDto updateCategory(UUID id, CategoryDto dto) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
-        categoryMapper.updateEntity(category, request);
+        categoryMapper.updateEntity(category, dto);
         category = categoryRepository.save(category);
-        return categoryMapper.toResponse(category);
+        return categoryMapper.toDto(category);
     }
 
     @Transactional

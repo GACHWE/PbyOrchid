@@ -21,7 +21,7 @@ public class ProductResources {
     @Column(nullable = false)
     private String url;
 
-    private String resourceType;   // "image", "video"
+//    private String resourceType;   // not needed because only images are being uploaded
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)

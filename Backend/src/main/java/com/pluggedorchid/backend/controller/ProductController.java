@@ -72,16 +72,19 @@ public class ProductController {
     // ──────────────────────────────────────────────────────────────
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ProductDto> createProduct(@Valid @RequestBody ProductCreateRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(productService.createProduct(request));
+    @Operation(summary = "Create a new product (Admin only)")
+    public ResponseEntity<ProductDto> createProduct(@Valid @RequestBody ProductDto productDto) {
+        ProductDto created = productService.createProduct(productDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Update an existing product (Admin only)")
     public ResponseEntity<ProductDto> updateProduct(@PathVariable UUID id,
-                                                    @Valid @RequestBody ProductUpdateRequest request) {
-        return ResponseEntity.ok(productService.updateProduct(id, request));
+                                                    @Valid @RequestBody ProductDto productDto) {
+        ProductDto updated = productService.updateProduct(id, productDto);
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
@@ -94,6 +97,7 @@ public class ProductController {
 
     @PutMapping("/{id}/feature")
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Feature a product with optional discount and expiration")
     public ResponseEntity<ProductDto> featureProduct(@PathVariable UUID id,
                                                      @Valid @RequestBody FeatureProductRequest request) {
         return ResponseEntity.ok(productService.featureProduct(id, request));
@@ -101,12 +105,14 @@ public class ProductController {
 
     @PutMapping("/{id}/unfeature")
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Remove product from featured list")
     public ResponseEntity<ProductDto> unfeatureProduct(@PathVariable UUID id) {
         return ResponseEntity.ok(productService.unfeatureProduct(id));
     }
 
     @PutMapping("/{id}/new-arrival")
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Toggle new arrival status")
     public ResponseEntity<ProductDto> toggleNewArrival(@PathVariable UUID id,
                                                        @RequestParam boolean newArrival) {
         return ResponseEntity.ok(productService.toggleNewArrival(id, newArrival));

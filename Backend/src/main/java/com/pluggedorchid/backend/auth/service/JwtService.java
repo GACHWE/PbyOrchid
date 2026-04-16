@@ -1,4 +1,4 @@
-package com.pluggedorchid.backend.auth.service;   // Recommended package
+package com.pluggedorchid.backend.auth.service;
 
 import com.pluggedorchid.backend.auth.config.JwtConfig;
 import io.jsonwebtoken.*;
@@ -57,43 +57,41 @@ public class JwtService {
         }
     }
 
-    // ==================== Token Generation ====================
-
-    public String generateAccessToken(UserDetails userDetails) {
-        Map<String, Object> claims = new HashMap<>();
-
-        // Put the primary role (ROLE_USER or ROLE_ADMIN)
-        if (!userDetails.getAuthorities().isEmpty()) {
-            String role = userDetails.getAuthorities().iterator().next().getAuthority();
-            claims.put("role", role);        // e.g., "ROLE_USER" or "ROLE_ADMIN"
-        }
-
-        return createToken(claims, userDetails.getUsername(), jwtConfig.getAccessExpiration());
-    }
-
-    public String generateRefreshToken(UserDetails userDetails) {
-        // Refresh token usually has no extra claims
-        return createToken(new HashMap<>(), userDetails.getUsername(), jwtConfig.getRefreshExpiration());
-    }
-
-    private String createToken(Map<String, Object> claims, String subject, long expirationMs) {
-        return Jwts.builder()
-                .claims(claims)
-                .subject(subject)
-                .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + expirationMs))
-                .signWith(getSigningKey(), Jwts.SIG.HS256)   // Modern & explicit
-                .compact();
-    }
-
     // ==================== Token Validation ====================
 
-    public Boolean isTokenValid(String token, UserDetails userDetails) {
+    /**
+     * Validates the token's signature and expiration only.
+     * Does NOT check against a UserDetails object.
+     * Useful for initial filtering before loading the user.
+     */
+    public boolean validateToken(String token) {
+        try {
+            extractAllClaims(token);          // throws exception if signature invalid
+            return !isTokenExpired(token);
+        } catch (ExpiredJwtException e) {
+            log.warn("Token expired: {}", e.getMessage());
+        } catch (JwtException e) {
+            log.warn("Invalid JWT signature or structure: {}", e.getMessage());
+        } catch (Exception e) {
+            log.warn("Unexpected token validation error: {}", e.getMessage());
+        }
+        return false;
+    }
+
+    /**
+     * Validates the token against a specific UserDetails.
+     * Checks username match and expiration.
+     */
+    public boolean isTokenValidForUser(String token, UserDetails userDetails) {
+        if (userDetails == null) {
+            log.warn("Cannot validate token – userDetails is null");
+            return false;
+        }
         try {
             final String username = extractUsername(token);
             return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
         } catch (Exception e) {
-            log.warn("Token validation failed: {}", e.getMessage());
+            log.warn("Token validation for user failed: {}", e.getMessage());
             return false;
         }
     }
@@ -107,7 +105,33 @@ public class JwtService {
         }
     }
 
-    // Optional: Extract role from token (useful in filters or controllers)
+    // ==================== Token Generation ====================
+
+    public String generateAccessToken(UserDetails userDetails) {
+        Map<String, Object> claims = new HashMap<>();
+        if (!userDetails.getAuthorities().isEmpty()) {
+            String role = userDetails.getAuthorities().iterator().next().getAuthority();
+            claims.put("role", role);
+        }
+        return createToken(claims, userDetails.getUsername(), jwtConfig.getAccessExpiration());
+    }
+
+    public String generateRefreshToken(UserDetails userDetails) {
+        return createToken(new HashMap<>(), userDetails.getUsername(), jwtConfig.getRefreshExpiration());
+    }
+
+    private String createToken(Map<String, Object> claims, String subject, long expirationMs) {
+        return Jwts.builder()
+                .claims(claims)
+                .subject(subject)
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + expirationMs))
+                .signWith(getSigningKey(), Jwts.SIG.HS256)
+                .compact();
+    }
+
+    // ==================== Helper ====================
+
     public String extractRole(String token) {
         return extractClaim(token, claims -> claims.get("role", String.class));
     }

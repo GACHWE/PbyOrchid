@@ -1,182 +1,128 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { X, Upload, Loader2, Trash2 } from 'lucide-react';
-import { createProduct, updateProduct, uploadFile, uploadMultipleFiles, getAllCategories, deleteFileByUrl } from '../../api/products';
+import React, { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { X, Upload, Loader2, Trash2, Plus } from "lucide-react";
+import { createProduct, updateProduct } from "../../api/products";
+import { getAllCategories } from "../../api/categories";
+import { deleteFileByUrl, uploadFile } from "../../api/files";
 
 const ProductForm = ({ isOpen, onClose, product, onSuccess }) => {
   const [formData, setFormData] = useState({
-    name: '',
-    brand: '',
-    price: '',
-    categoryId: '',
-    description: '',
-    images: [],
-    featured: false,
-    newArrival: false,
+    name: "", slug: "", brand: "", price: "", originalPrice: "",
+    description: "", gender: "", category: null, categoryType: null, newArrival: false,
   });
-  const [imageFiles, setImageFiles] = useState([]);
-  const [uploadingImages, setUploadingImages] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [variants, setVariants] = useState([{ color: "", size: "", stockQuantity: 0 }]);
+  const [existingResources, setExistingResources] = useState([]);
+  const [newImageFiles, setNewImageFiles] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [loadingCategories, setLoadingCategories] = useState(false);
-  const [deletingImageIndex, setDeletingImageIndex] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState("");
+  const [deletingIndex, setDeletingIndex] = useState(null);
   const fileInputRef = useRef(null);
-
   const isEdit = !!product;
 
+  // Fetch categories
   useEffect(() => {
-    if (isOpen) {
-      const fetchCategories = async () => {
-        setLoadingCategories(true);
-        try {
-          const data = await getAllCategories();
-          setCategories(data || []);
-        } catch (err) {
-          console.error('Failed to load categories:', err);
-        } finally {
-          setLoadingCategories(false);
-        }
-      };
-      fetchCategories();
-    }
+    if (isOpen) getAllCategories().then(setCategories).catch(() => setError("Failed to load categories"));
   }, [isOpen]);
 
+  // Populate form
   useEffect(() => {
-    if (isEdit && product) {
-      setFormData({
-        name: product.name || '',
-        brand: product.brand || '',
-        price: product.price || '',
-        categoryId: product.categoryId || '',
-        description: product.description || '',
-        images: product.images || [],
-        featured: product.featured || false,
-        newArrival: product.newArrival || false,
-      });
-      setImageFiles([]);
-    } else {
-      setFormData({
-        name: '',
-        brand: '',
-        price: '',
-        categoryId: '',
-        description: '',
-        images: [],
-        featured: false,
-        newArrival: false,
-      });
-      setImageFiles([]);
-    }
-  }, [product, isEdit, isOpen]);
-
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
-  };
-
-  const handleImageSelect = (e) => {
-    const files = Array.from(e.target.files);
-    setImageFiles(prev => [...prev, ...files]);
-  };
-
-  const removeImageFile = (index) => {
-    setImageFiles(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const removeExistingImage = async (index, imageUrl) => {
-    // Ask user if they want to delete the file from server
-    const deleteFromServer = window.confirm(
-      'Remove this image from product. Do you also want to delete the image file from the server? (OK = Yes, Cancel = No)'
-    );
-
-    if (deleteFromServer) {
-      setDeletingImageIndex(index);
-      try {
-        await deleteFileByUrl(imageUrl);
-        // If successful, remove from state
-        setFormData(prev => ({
-          ...prev,
-          images: prev.images.filter((_, i) => i !== index),
-        }));
-      } catch (err) {
-        setError(`Failed to delete image from server: ${err.message}`);
-        // Still remove from product? Probably yes, but we'll keep it to avoid data inconsistency.
-        // Optionally, we could keep it and not remove.
-        // For now, we'll still remove from product, but show error.
-        setFormData(prev => ({
-          ...prev,
-          images: prev.images.filter((_, i) => i !== index),
-        }));
-      } finally {
-        setDeletingImageIndex(null);
+    if (isOpen) {
+      if (isEdit && product) {
+        setFormData({
+          name: product.name || "", slug: product.slug || "", brand: product.brand || "",
+          price: product.price?.toString() || "", originalPrice: product.originalPrice?.toString() || "",
+          description: product.description || "", gender: product.gender || "",
+          category: product.category || null, categoryType: product.categoryType || null,
+          newArrival: product.newArrival || false,
+        });
+        setExistingResources(product.resources || []);
+        setVariants(product.variants?.length ? product.variants : [{ color: "", size: "", stockQuantity: 0 }]);
+      } else {
+        setFormData({ name: "", slug: "", brand: "", price: "", originalPrice: "", description: "", gender: "", category: null, categoryType: null, newArrival: false });
+        setExistingResources([]);
+        setVariants([{ color: "", size: "", stockQuantity: 0 }]);
+        setNewImageFiles([]);
       }
-    } else {
-      // Just remove from product data
-      setFormData(prev => ({
-        ...prev,
-        images: prev.images.filter((_, i) => i !== index),
-      }));
+      setError("");
     }
+  }, [isOpen, product, isEdit]);
+
+  // Cleanup preview URLs
+  useEffect(() => () => newImageFiles.forEach(f => f.previewUrl && URL.revokeObjectURL(f.previewUrl)), [newImageFiles]);
+
+  const processFiles = (files) => {
+    const valid = Array.from(files).filter(f => f.type.startsWith("image/") && f.size <= 10 * 1024 * 1024);
+    if (valid.length !== Array.from(files).length) setError("Only images ≤10MB allowed.");
+    valid.forEach(f => f.previewUrl = URL.createObjectURL(f));
+    setNewImageFiles(prev => [...prev, ...valid]);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const removeNewImage = (index) => {
+    URL.revokeObjectURL(newImageFiles[index].previewUrl);
+    setNewImageFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const removeExistingResource = async (index, url) => {
+    if (!confirm("Delete this image?")) return;
+    setDeletingIndex(index);
+    try {
+      await deleteFileByUrl(url);
+      setExistingResources(prev => prev.filter((_, i) => i !== index));
+    } catch { setError("Failed to delete image."); }
+    setDeletingIndex(null);
   };
 
   const uploadImages = async () => {
-    if (imageFiles.length === 0) return [];
-
-    try {
-      if (imageFiles.length === 1) {
+    const results = [];
+    for (const file of newImageFiles) {
+      try {
         const fd = new FormData();
-        fd.append('file', imageFiles[0]);
-        const result = await uploadFile(fd);
-        return [result.url];
-      } else {
-        const fd = new FormData();
-        imageFiles.forEach(file => fd.append('files', file));
-        const result = await uploadMultipleFiles(fd);
-        const urls = Object.values(result.results).filter(v => !v.startsWith('ERROR'));
-        if (urls.length !== imageFiles.length) {
-          throw new Error(`Only ${urls.length} of ${imageFiles.length} images uploaded successfully.`);
-        }
-        return urls;
-      }
-    } catch (err) {
-      throw err;
+        fd.append("file", file);
+        const { url } = await uploadFile(fd);
+        results.push({ url, type: "image", isPrimary: false });
+      } catch { setError(`Upload failed: ${file.name}`); }
     }
+    return results;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
+    if (!formData.name || !formData.slug || !formData.brand || !formData.category?.id || !formData.price)
+      return setError("Please fill all required fields.");
+    if (variants.some(v => !v.color || !v.size))
+      return setError("Each variant must have a color and size.");
+    if (existingResources.length === 0 && newImageFiles.length === 0)
+      return setError("At least one product image is required.");
+
     setLoading(true);
+    setUploading(true);
+    const uploaded = await uploadImages();
+    setUploading(false);
+
+    const allResources = [
+      ...existingResources.map((res, idx) => ({ ...res, isPrimary: idx === 0 && uploaded.length === 0 })),
+      ...uploaded.map((res, idx) => ({ ...res, isPrimary: existingResources.length === 0 && idx === 0 })),
+    ];
+
+    const payload = {
+      name: formData.name, slug: formData.slug, brand: formData.brand,
+      price: parseFloat(formData.price), originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : null,
+      description: formData.description || null, gender: formData.gender || null,
+      categoryId: formData.category.id, categoryTypeId: formData.categoryType?.id || null,
+      variants: variants.map(v => ({ color: v.color, size: v.size, stockQuantity: parseInt(v.stockQuantity, 10) })),
+      resources: allResources, newArrival: formData.newArrival,
+    };
 
     try {
-      let uploadedUrls = [];
-      if (imageFiles.length > 0) {
-        setUploadingImages(true);
-        uploadedUrls = await uploadImages();
-        setUploadingImages(false);
-      }
-
-      const productData = {
-        ...formData,
-        price: parseFloat(formData.price),
-        images: [...formData.images, ...uploadedUrls],
-      };
-
-      if (isEdit) {
-        await updateProduct(product.id, productData);
-      } else {
-        await createProduct(productData);
-      }
-
-      onSuccess();
+      isEdit ? await updateProduct(product.id, payload) : await createProduct(payload);
+      onSuccess?.();
       onClose();
     } catch (err) {
-      setError(err.message || 'Something went wrong');
-      setUploadingImages(false);
+      setError(err.message || "Failed to save product.");
     } finally {
       setLoading(false);
     }
@@ -187,230 +133,113 @@ const ProductForm = ({ isOpen, onClose, product, onSuccess }) => {
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={onClose}
-          className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-        />
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.9, opacity: 0 }}
-          className="relative w-full max-w-3xl bg-dark-card border border-dark-border rounded-3xl shadow-2xl overflow-hidden"
-        >
-          <div className="flex items-center justify-between p-6 border-b border-dark-border">
-            <h3 className="text-2xl font-black tracking-tighter italic uppercase">
-              {isEdit ? 'Edit Product' : 'Add New Product'}
-            </h3>
-            <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors">
-              <X size={24} />
-            </button>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          onClick={onClose} className="absolute inset-0 bg-black/80 dark:bg-black/80 backdrop-blur-sm" />
+        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+          className="relative w-full max-w-3xl bg-white dark:bg-gray-900 rounded-2xl shadow-xl overflow-hidden">
+          
+          {/* Header */}
+          <div className="flex justify-between items-center p-5 border-b border-gray-200 dark:border-gray-800">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">{isEdit ? "Edit Product" : "New Product"}</h2>
+            <button onClick={onClose} className="text-gray-500 hover:text-gray-700 dark:text-gray-400"><X size={22} /></button>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
-            {error && (
-              <div className="bg-neon-pink/10 border border-neon-pink/20 text-neon-pink p-4 rounded-xl text-sm font-bold">
-                {error}
-              </div>
-            )}
+          <form onSubmit={handleSubmit} className="p-5 space-y-6 max-h-[75vh] overflow-y-auto">
+            {error && <div className="p-3 text-sm font-medium text-red-700 bg-red-50 dark:bg-red-950/30 rounded-xl">{error}</div>}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">
-                  Product Name *
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  placeholder="e.g. Air Jordan 1 Retro High"
-                  className="w-full bg-dark-bg border border-dark-border rounded-xl p-4 focus:border-neon-purple outline-none"
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">
-                  Brand *
-                </label>
-                <select
-                  name="brand"
-                  value={formData.brand}
-                  onChange={handleChange}
-                  className="w-full bg-dark-bg border border-dark-border rounded-xl p-4 focus:border-neon-purple outline-none"
-                  required
-                >
-                  <option value="">Select brand</option>
-                  <option>Nike</option>
-                  <option>Jordan</option>
-                  <option>Adidas</option>
-                  <option>New Balance</option>
-                  <option>Puma</option>
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">
-                  Price (USD) *
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  name="price"
-                  value={formData.price}
-                  onChange={handleChange}
-                  placeholder="180.00"
-                  className="w-full bg-dark-bg border border-dark-border rounded-xl p-4 focus:border-neon-purple outline-none"
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">
-                  Category *
-                </label>
-                <select
-                  name="categoryId"
-                  value={formData.categoryId}
-                  onChange={handleChange}
-                  className="w-full bg-dark-bg border border-dark-border rounded-xl p-4 focus:border-neon-purple outline-none"
-                  required
-                  disabled={loadingCategories}
-                >
-                  <option value="">{loadingCategories ? 'Loading...' : 'Select category'}</option>
-                  {categories.map(cat => (
-                    <option key={cat.id} value={cat.id}>{cat.name}</option>
-                  ))}
-                </select>
-              </div>
+            {/* Basic Info */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input label="Product Name *" name="name" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required />
+              <Input label="Slug *" name="slug" value={formData.slug} onChange={e => setFormData({...formData, slug: e.target.value})} required />
+              <Input label="Brand *" name="brand" value={formData.brand} onChange={e => setFormData({...formData, brand: e.target.value})} required />
+              <select value={formData.gender} onChange={e => setFormData({...formData, gender: e.target.value})}
+                className="p-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 dark:text-white">
+                <option value="">Gender</option><option>MEN</option><option>WOMEN</option><option>UNISEX</option>
+              </select>
+              <Input label="Price (USD) *" type="number" step="0.01" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} required />
+              <Input label="Original Price" type="number" step="0.01" value={formData.originalPrice} onChange={e => setFormData({...formData, originalPrice: e.target.value})} />
             </div>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">
-                Description
-              </label>
-              <textarea
-                name="description"
-                rows="4"
-                value={formData.description}
-                onChange={handleChange}
-                placeholder="Product description..."
-                className="w-full bg-dark-bg border border-dark-border rounded-xl p-4 focus:border-neon-purple outline-none"
-              />
+            {/* Category & Type */}
+            <div className="grid grid-cols-2 gap-4">
+              <select value={formData.category?.id || ""} onChange={e => {
+                const cat = categories.find(c => c.id === e.target.value);
+                setFormData({...formData, category: cat || null, categoryType: null});
+              }} className="p-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 dark:text-white" required>
+                <option value="">Select Category *</option>
+                {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+              <select value={formData.categoryType?.id || ""} onChange={e => {
+                const type = formData.category?.categoryTypes?.find(t => t.id === e.target.value);
+                setFormData({...formData, categoryType: type ? { id: type.id } : null});
+              }} className="p-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 dark:text-white" disabled={!formData.category}>
+                <option value="">Category Type (optional)</option>
+                {formData.category?.categoryTypes?.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+              </select>
             </div>
 
-            <div className="flex gap-6">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="featured"
-                  checked={formData.featured}
-                  onChange={handleChange}
-                  className="w-4 h-4 accent-neon-purple"
-                />
-                <span className="text-xs font-bold uppercase tracking-widest">Featured Product</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="newArrival"
-                  checked={formData.newArrival}
-                  onChange={handleChange}
-                  className="w-4 h-4 accent-neon-purple"
-                />
-                <span className="text-xs font-bold uppercase tracking-widest">New Arrival</span>
-              </label>
-            </div>
+            <textarea rows={3} placeholder="Description" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})}
+              className="w-full p-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 dark:text-white" />
 
-            {/* Image Upload Section */}
-            <div className="space-y-3">
-              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">
-                Product Images
-              </label>
-
-              {/* Existing Images Preview */}
-              {formData.images.length > 0 && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-4">
-                  {formData.images.map((url, idx) => (
-                    <div key={idx} className="relative group">
-                      <img src={url} alt={`Product ${idx}`} className="w-full h-24 object-cover rounded-lg border border-dark-border" />
-                      <button
-                        type="button"
-                        onClick={() => removeExistingImage(idx, url)}
-                        disabled={deletingImageIndex === idx}
-                        className="absolute top-1 right-1 p-1 bg-black/70 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-neon-pink disabled:opacity-50"
-                      >
-                        {deletingImageIndex === idx ? (
-                          <Loader2 size={12} className="animate-spin" />
-                        ) : (
-                          <Trash2 size={12} />
-                        )}
-                      </button>
-                    </div>
-                  ))}
+            {/* Variants */}
+            <div>
+              <div className="flex justify-between items-center mb-3">
+                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Variants</label>
+                <button type="button" onClick={() => setVariants([...variants, { color: "", size: "", stockQuantity: 0 }])}
+                  className="text-sm text-purple-600 dark:text-purple-400 flex items-center gap-1"><Plus size={16}/> Add</button>
+              </div>
+              {variants.map((v, i) => (
+                <div key={i} className="grid grid-cols-12 gap-3 items-end mb-3">
+                  <div className="col-span-4"><input placeholder="Color *" value={v.color} onChange={e => setVariants(variants.map((item, idx) => idx === i ? {...item, color: e.target.value} : item))}
+                    className="w-full p-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 dark:text-white" required /></div>
+                  <div className="col-span-3"><select value={v.size} onChange={e => setVariants(variants.map((item, idx) => idx === i ? {...item, size: e.target.value} : item))}
+                    className="w-full p-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800"><option value="">Size *</option><option>38</option><option>40</option><option>42</option></select></div>
+                  <div className="col-span-3"><input type="number" placeholder="Stock" value={v.stockQuantity} onChange={e => setVariants(variants.map((item, idx) => idx === i ? {...item, stockQuantity: e.target.value} : item))}
+                    className="w-full p-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800" /></div>
+                  <div className="col-span-2 text-right">{variants.length > 1 && <button type="button" onClick={() => setVariants(variants.filter((_, idx) => idx !== i))}><Trash2 size={18} className="text-red-500"/></button>}</div>
                 </div>
-              )}
-
-              {/* New Images Preview */}
-              {imageFiles.length > 0 && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-4">
-                  {imageFiles.map((file, idx) => (
-                    <div key={idx} className="relative group">
-                      <img
-                        src={URL.createObjectURL(file)}
-                        alt={`Preview ${idx}`}
-                        className="w-full h-24 object-cover rounded-lg border border-dark-border"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeImageFile(idx)}
-                        className="absolute top-1 right-1 p-1 bg-black/70 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-neon-pink"
-                      >
-                        <Trash2 size={12} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <div className="border-2 border-dashed border-dark-border rounded-2xl p-6 text-center hover:border-neon-purple transition-colors cursor-pointer group">
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  ref={fileInputRef}
-                  onChange={handleImageSelect}
-                  className="hidden"
-                />
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex flex-col items-center gap-2"
-                >
-                  <Upload size={32} className="text-gray-500 group-hover:text-neon-purple transition-colors" />
-                  <p className="text-xs font-bold text-gray-500">Click to upload images</p>
-                </button>
-              </div>
+              ))}
             </div>
 
-            <div className="flex gap-4 pt-4">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 py-4 rounded-xl border border-dark-border font-black text-xs uppercase tracking-widest hover:bg-white/5 transition-all"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={loading || uploadingImages}
-                className="flex-1 btn-primary py-4 text-xs flex items-center justify-center gap-2"
-              >
-                {(loading || uploadingImages) && <Loader2 size={16} className="animate-spin" />}
-                {isEdit ? 'Update Product' : 'Create Product'}
+            {/* Images */}
+            <div>
+              <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Product Images *</label>
+              <div className="grid grid-cols-4 gap-3 mb-4">
+                {existingResources.map((res, idx) => (
+                  <div key={res.id || idx} className="relative group">
+                    <img src={res.url} className="w-full h-24 object-cover rounded-lg border dark:border-gray-700" />
+                    <button type="button" onClick={() => removeExistingResource(idx, res.url)} className="absolute top-1 right-1 bg-black/60 p-1 rounded-full opacity-0 group-hover:opacity-100">
+                      {deletingIndex === idx ? <Loader2 size={12} className="animate-spin"/> : <Trash2 size={12}/>}
+                    </button>
+                  </div>
+                ))}
+                {newImageFiles.map((file, idx) => (
+                  <div key={idx} className="relative group">
+                    <img src={file.previewUrl} className="w-full h-24 object-cover rounded-lg border" />
+                    <button type="button" onClick={() => removeNewImage(idx)} className="absolute top-1 right-1 bg-black/60 p-1 rounded-full opacity-0 group-hover:opacity-100"><Trash2 size={12}/></button>
+                    <span className="absolute bottom-0 left-0 right-0 text-[10px] bg-black/60 text-white truncate px-1 rounded-b-lg">{file.name}</span>
+                  </div>
+                ))}
+              </div>
+              <label className="flex flex-col items-center justify-center p-4 border-2 border-dashed rounded-xl cursor-pointer hover:border-purple-500 dark:border-gray-700">
+                <input type="file" multiple accept="image/*" ref={fileInputRef} onChange={e => processFiles(e.target.files)} className="hidden" />
+                <Upload size={28} className="text-gray-500 dark:text-gray-400" />
+                <span className="text-sm text-gray-600 dark:text-gray-400 mt-1">Click or drag images</span>
+              </label>
+            </div>
+
+            {/* New Arrival */}
+            <label className="flex items-center gap-2">
+              <input type="checkbox" checked={formData.newArrival} onChange={e => setFormData({...formData, newArrival: e.target.checked})} className="accent-purple-600" />
+              <span className="text-sm text-gray-700 dark:text-gray-300">Mark as New Arrival</span>
+            </label>
+
+            {/* Actions */}
+            <div className="flex gap-3 pt-2 bg-amber-500">
+              <button type="button" onClick={onClose} className="flex-1 py-3 rounded-xl border border-gray-300 dark:border-gray-700 text-sm font-medium">Cancel</button>
+              <button type="submit" disabled={loading || uploading} className="flex-1 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium flex justify-center items-center gap-2 disabled:opacity-70">
+                {(loading || uploading) && <Loader2 size={16} className="animate-spin"/>}
+                {isEdit ? "Update" : "Create"}
               </button>
             </div>
           </form>
@@ -419,5 +248,13 @@ const ProductForm = ({ isOpen, onClose, product, onSuccess }) => {
     </AnimatePresence>
   );
 };
+
+// Reusable input component
+const Input = ({ label, ...props }) => (
+  <div>
+    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">{label}</label>
+    <input {...props} className="w-full p-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none" />
+  </div>
+);
 
 export default ProductForm;

@@ -3,6 +3,7 @@ package com.pluggedorchid.backend.auth.config;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -29,12 +30,20 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Add this line
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**", "/api/v1/categories", "/api/v1/products/**", "/api/v1/analytics/track", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/api-docs/**").permitAll()
-                        .requestMatchers("/api/v1/wishlist/**", "/api/v1/orders/**").hasRole("USER")
-                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                        // Permit preflight OPTIONS requests globally
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        // Public endpoints
+                        .requestMatchers("/api/v1/auth/**", "/api/v1/categories", "/api/v1/products/**",
+                                "/api/v1/analytics/track", "/swagger-ui/**", "/v3/api-docs/**",
+                                "/swagger-ui.html", "/api-docs/**").permitAll()
+                        // User endpoints
+                        .requestMatchers("/api/v1/wishlist/**", "/api/v1/orders/admin/**").hasRole("USER")
+                        // Admin endpoints – fix patterns to match actual URLs
+                        .requestMatchers("/api/v1/admin/**", "/api/v1/analytics/admin/**", "/api/v1/orders/admin/**").hasRole("ADMIN")
+                        // Everything else requires authentication
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

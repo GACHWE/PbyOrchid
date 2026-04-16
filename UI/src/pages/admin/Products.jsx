@@ -1,263 +1,305 @@
-// import React, { useState } from 'react';
-// import { 
-//   Plus, 
-//   Search, 
-//   Edit2, 
-//   Trash2, 
-//   Filter, 
-//   ChevronLeft, 
-//   ChevronRight,
-//   MoreVertical,
-//   Image as ImageIcon
-// } from 'lucide-react';
-// import { useProductsStore } from '../../store/productsStore';
-// import { motion, AnimatePresence } from 'motion/react';
-
-// export default function Products() {
-//   const { products, removeProduct } = useProductsStore();
-//   const [searchQuery, setSearchQuery] = useState('');
-//   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-
-//   const filteredProducts = products.filter(p => 
-//     p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-//     p.brand.toLowerCase().includes(searchQuery.toLowerCase())
-//   );
-
-//   return (
-//     <div className="space-y-8">
-//       <div className="flex items-center justify-between" data-aos="fade-down">
-//         <div>
-//           <h1 className="text-4xl font-black tracking-tighter italic uppercase">Products</h1>
-//           <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mt-1">Manage your sneaker inventory</p>
-//         </div>
-//         <button 
-//           onClick={() => setIsAddModalOpen(true)}
-//           className="btn-primary flex items-center gap-2 py-3 px-6 text-xs"
-//         >
-//           <Plus size={18} /> ADD NEW PRODUCT
-//         </button>
-//       </div>
-
-//       {/* Controls */}
-//       <div className="flex flex-col sm:flex-row items-center justify-between gap-4" data-aos="fade-up">
-//         <div className="relative w-full sm:w-96">
-//           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-//           <input 
-//             type="text" 
-//             placeholder="Search products..." 
-//             value={searchQuery}
-//             onChange={(e) => setSearchQuery(e.target.value)}
-//             className="w-full bg-dark-card border border-dark-border rounded-full py-3 pl-12 pr-6 text-sm focus:outline-none focus:border-neon-purple transition-all"
-//           />
-//         </div>
-//         <div className="flex items-center gap-2">
-//           <button className="p-3 rounded-xl bg-dark-card border border-dark-border hover:border-neon-purple text-gray-400 hover:text-white transition-all">
-//             <Filter size={18} />
-//           </button>
-//           <select className="bg-dark-card border border-dark-border rounded-xl py-3 px-6 text-xs font-bold focus:outline-none focus:border-neon-purple">
-//             <option>All Brands</option>
-//             <option>Nike</option>
-//             <option>Jordan</option>
-//             <option>Adidas</option>
-//           </select>
-//         </div>
-//       </div>
-
-//       {/* Table */}
-//       <div className="bg-dark-card border border-dark-border rounded-3xl overflow-hidden" data-aos="fade-up">
-//         <div className="overflow-x-auto">
-//           <table className="w-full text-left border-collapse">
-//             <thead>
-//               <tr className="bg-dark-bg border-b border-dark-border">
-//                 <th className="p-6 text-[10px] font-black uppercase tracking-widest text-gray-500">Product</th>
-//                 <th className="p-6 text-[10px] font-black uppercase tracking-widest text-gray-500">Brand</th>
-//                 <th className="p-6 text-[10px] font-black uppercase tracking-widest text-gray-500">Price</th>
-//                 <th className="p-6 text-[10px] font-black uppercase tracking-widest text-gray-500">Stock</th>
-//                 <th className="p-6 text-[10px] font-black uppercase tracking-widest text-gray-500">Rating</th>
-//                 <th className="p-6 text-[10px] font-black uppercase tracking-widest text-gray-500">Actions</th>
-//               </tr>
-//             </thead>
-//             <tbody className="divide-y divide-dark-border">
-//               {filteredProducts.map((product) => (
-//                 <tr key={product.id} className="hover:bg-white/5 transition-colors group">
-//                   <td className="p-6">
-//                     <div className="flex items-center gap-4">
-//                       <div className="w-12 h-12 rounded-xl overflow-hidden bg-dark-bg border border-dark-border">
-//                         <img src={product.image} className="w-full h-full object-cover" alt={product.name} />
-//                       </div>
-//                       <div>
-//                         <p className="font-black text-sm">{product.name}</p>
-//                         <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{product.category}</p>
-//                       </div>
-//                     </div>
-//                   </td>
-//                   <td className="p-6">
-//                     <span className="text-xs font-bold text-neon-purple uppercase tracking-widest">{product.brand}</span>
-//                   </td>
-//                   <td className="p-6">
-//                     <span className="text-sm font-black text-neon-green">${product.price}</span>
-//                   </td>
-//                   <td className="p-6">
-//                     <span className="text-sm font-bold">42 Units</span>
-//                   </td>
-//                   <td className="p-6">
-//                     <div className="flex items-center gap-1 text-neon-orange">
-//                       <span className="text-sm font-black">{product.rating}</span>
-//                     </div>
-//                   </td>
-//                   <td className="p-6">
-//                     <div className="flex items-center gap-2">
-//                       <button className="p-2 rounded-lg hover:bg-neon-purple/10 hover:text-neon-purple transition-all">
-//                         <Edit2 size={16} />
-//                       </button>
-//                       <button 
-//                         onClick={() => removeProduct(product.id)}
-//                         className="p-2 rounded-lg hover:bg-neon-pink/10 hover:text-neon-pink transition-all"
-//                       >
-//                         <Trash2 size={16} />
-//                       </button>
-//                       <button className="p-2 rounded-lg hover:bg-white/10 transition-all">
-//                         <MoreVertical size={16} />
-//                       </button>
-//                     </div>
-//                   </td>
-//                 </tr>
-//               ))}
-//             </tbody>
-//           </table>
-//         </div>
-
-//         {/* Pagination */}
-//         <div className="p-6 border-t border-dark-border flex items-center justify-between">
-//           <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Showing 1 to 10 of {filteredProducts.length} entries</p>
-//           <div className="flex items-center gap-2">
-//             <button className="p-2 rounded-lg border border-dark-border text-gray-500 hover:text-white transition-all"><ChevronLeft size={18} /></button>
-//             <button className="w-8 h-8 rounded-lg bg-neon-purple text-white font-black text-xs">1</button>
-//             <button className="w-8 h-8 rounded-lg hover:bg-white/5 text-gray-500 font-black text-xs">2</button>
-//             <button className="w-8 h-8 rounded-lg hover:bg-white/5 text-gray-500 font-black text-xs">3</button>
-//             <button className="p-2 rounded-lg border border-dark-border text-gray-500 hover:text-white transition-all"><ChevronRight size={18} /></button>
-//           </div>
-//         </div>
-//       </div>
-
-//       {/* Add Modal Mock */}
-//       <AnimatePresence>
-//         {isAddModalOpen && (
-//           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-//             <motion.div 
-//               initial={{ opacity: 0 }}
-//               animate={{ opacity: 1 }}
-//               exit={{ opacity: 0 }}
-//               onClick={() => setIsAddModalOpen(false)}
-//               className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-//             />
-//             <motion.div 
-//               initial={{ scale: 0.9, opacity: 0 }}
-//               animate={{ scale: 1, opacity: 1 }}
-//               exit={{ scale: 0.9, opacity: 0 }}
-//               className="relative w-full max-w-2xl bg-dark-card border border-dark-border rounded-3xl p-8 shadow-2xl"
-//             >
-//               <div className="flex items-center justify-between mb-8">
-//                 <h3 className="text-3xl font-black tracking-tighter italic uppercase">Add New Sneaker</h3>
-//                 <button onClick={() => setIsAddModalOpen(false)} className="text-gray-500 hover:text-white"><Plus size={24} className="rotate-45" /></button>
-//               </div>
-
-//               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-//                 <div className="space-y-2">
-//                   <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">Product Name</label>
-//                   <input type="text" placeholder="e.g. Air Jordan 1" className="w-full bg-dark-bg border border-dark-border rounded-xl p-4 focus:border-neon-purple outline-none" />
-//                 </div>
-//                 <div className="space-y-2">
-//                   <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">Brand</label>
-//                   <select className="w-full bg-dark-bg border border-dark-border rounded-xl p-4 focus:border-neon-purple outline-none">
-//                     <option>Nike</option>
-//                     <option>Jordan</option>
-//                     <option>Adidas</option>
-//                     <option>New Balance</option>
-//                   </select>
-//                 </div>
-//                 <div className="space-y-2">
-//                   <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">Price (USD)</label>
-//                   <input type="number" placeholder="180" className="w-full bg-dark-bg border border-dark-border rounded-xl p-4 focus:border-neon-purple outline-none" />
-//                 </div>
-//                 <div className="space-y-2">
-//                   <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">Category</label>
-//                   <select className="w-full bg-dark-bg border border-dark-border rounded-xl p-4 focus:border-neon-purple outline-none">
-//                     <option>Lifestyle</option>
-//                     <option>Basketball</option>
-//                     <option>Running</option>
-//                     <option>Skate</option>
-//                   </select>
-//                 </div>
-//                 <div className="md:col-span-2 space-y-2">
-//                   <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">Product Image</label>
-//                   <div className="border-2 border-dashed border-dark-border rounded-2xl p-8 text-center hover:border-neon-purple transition-colors cursor-pointer group">
-//                     <ImageIcon size={32} className="text-gray-500 group-hover:text-neon-purple mx-auto mb-2 transition-colors" />
-//                     <p className="text-xs font-bold text-gray-500">Click to upload or drag and drop</p>
-//                   </div>
-//                 </div>
-//               </div>
-
-//               <div className="flex gap-4">
-//                 <button onClick={() => setIsAddModalOpen(false)} className="flex-1 py-4 rounded-xl border border-dark-border font-black text-xs uppercase tracking-widest hover:bg-white/5 transition-all">CANCEL</button>
-//                 <button onClick={() => setIsAddModalOpen(false)} className="flex-1 btn-primary py-4 text-xs">SAVE PRODUCT</button>
-//               </div>
-//             </motion.div>
-//           </div>
-//         )}
-//       </AnimatePresence>
-//     </div>
-//   );
-// }
-
-import React, { useState, useEffect } from 'react';
-import { 
-  Plus, 
-  Search, 
-  Edit2, 
-  Trash2, 
-  Filter, 
-  ChevronLeft, 
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import {
+  Plus,
+  Search,
+  Edit2,
+  Trash2,
+  Filter,
+  ChevronLeft,
   ChevronRight,
-  MoreVertical,
-  Image as ImageIcon,
-  Loader2
+  Sparkles,
+  Loader2,
+  X,
+  AlertCircle,
+  CheckCircle,
+  XCircle,
+  RotateCcw,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
-  getAllProducts, createProduct, updateProduct, deleteProduct, featureProduct, unfeatureProduct, toggleNewArrival} from '../../api/products';
+  getAllProducts,
+  deleteProduct,
+  toggleNewArrival,
+} from '../../api/products';
+import jordanPlaceholder from '../../assets/images/download.webp';
+import { getAllCategories } from '../../api/categories';
+import ProductForm from './ProductForm';
 
-export default function Products() {
+// ============================================================================
+// Toast Notification Component
+// ============================================================================
+const Toast = ({ message, type, onClose }) => {
+  useEffect(() => {
+    const timer = setTimeout(onClose, 5000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  const icons = {
+    success: <CheckCircle size={18} />,
+    error: <XCircle size={18} />,
+    info: <AlertCircle size={18} />,
+  };
+
+  const colors = {
+    success: 'bg-emerald-500 dark:bg-emerald-600',
+    error: 'bg-red-500 dark:bg-red-600',
+    info: 'bg-blue-500 dark:bg-blue-600',
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 20 }}
+      className={`fixed top-20 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-white ${colors[type]}`}
+      role="alert"
+    >
+      {icons[type]}
+      <span className="text-sm font-medium">{message}</span>
+      <button onClick={onClose} className="ml-2 hover:opacity-80">
+        <X size={16} />
+      </button>
+    </motion.div>
+  );
+};
+
+// ============================================================================
+// Confirmation Modal Component
+// ============================================================================
+const ConfirmDialog = ({ isOpen, onClose, onConfirm, title, message, confirmText = 'Delete', variant = 'danger' }) => {
+  if (!isOpen) return null;
+
+  const variantClasses = {
+    danger: 'bg-red-500 hover:bg-red-600 focus:ring-red-500',
+    warning: 'bg-amber-500 hover:bg-amber-600 focus:ring-amber-500',
+  };
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="bg-white dark:bg-dark-card rounded-2xl shadow-xl max-w-md w-full border border-gray-200 dark:border-dark-border"
+          >
+            <div className="p-6">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">{title}</h3>
+              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{message}</p>
+              <div className="mt-6 flex gap-3 justify-end">
+                <button
+                  onClick={onClose}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    onConfirm();
+                    onClose();
+                  }}
+                  className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${variantClasses[variant]}`}
+                >
+                  {confirmText}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+// ============================================================================
+// Loading Skeleton Component
+// ============================================================================
+const ProductRowSkeleton = () => (
+  <tr className="animate-pulse">
+    <td className="p-4 md:p-6">
+      <div className="flex items-center gap-4">
+        <div className="w-12 h-12 rounded-xl bg-gray-200 dark:bg-dark-border" />
+        <div className="space-y-2">
+          <div className="h-4 w-32 bg-gray-200 dark:bg-dark-border rounded" />
+          <div className="h-3 w-20 bg-gray-200 dark:bg-dark-border rounded" />
+        </div>
+      </div>
+    </td>
+    <td className="p-4 md:p-6"><div className="h-4 w-16 bg-gray-200 dark:bg-dark-border rounded" /></td>
+    <td className="p-4 md:p-6"><div className="h-4 w-20 bg-gray-200 dark:bg-dark-border rounded" /></td>
+    <td className="p-4 md:p-6"><div className="h-4 w-16 bg-gray-200 dark:bg-dark-border rounded" /></td>
+    <td className="p-4 md:p-6"><div className="h-6 w-20 bg-gray-200 dark:bg-dark-border rounded-full" /></td>
+    <td className="p-4 md:p-6"><div className="flex gap-2"><div className="h-8 w-8 bg-gray-200 dark:bg-dark-border rounded-lg" /></div></td>
+  </tr>
+);
+
+// ============================================================================
+// Memoized Product Row Component
+// ============================================================================
+const ProductRow = React.memo(({ product, onNewArrivalToggle, onEdit, onDelete, thumbnail }) => (
+  <tr className="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
+    <td className="p-4 md:p-6">
+      <div className="flex items-center gap-4">
+        <div className="w-12 h-12 rounded-xl overflow-hidden bg-gray-100 dark:bg-dark-bg border border-gray-200 dark:border-dark-border flex-shrink-0">
+          <img
+            src={thumbnail}
+            className="w-full h-full object-cover"
+            alt={product.name}
+            loading="lazy"
+            onError={(e) => { e.target.src = jordanPlaceholder; }}
+          />
+        </div>
+        <div className="min-w-0">
+          <p className="font-bold text-sm text-gray-900 dark:text-white truncate">
+            {product.name}
+          </p>
+          <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
+            {product.category?.name || 'Uncategorized'}
+          </p>
+        </div>
+      </div>
+    </td>
+    <td className="p-4 md:p-6">
+      <span className="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-widest">
+        {product.brand}
+      </span>
+    </td>
+    <td className="p-4 md:p-6">
+      <div className="flex flex-col">
+        {product.originalPrice && product.originalPrice > product.price && (
+          <span className="text-xs text-gray-400 line-through">
+            ${product.originalPrice}
+          </span>
+        )}
+        <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">
+          ${product.price}
+        </span>
+      </div>
+    </td>
+    <td className="p-4 md:p-6">
+      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        {product.variants?.reduce((sum, v) => sum + (v.stockQuantity || 0), 0) || 0} units
+      </span>
+    </td>
+    <td className="p-4 md:p-6">
+      <div className="flex gap-1 flex-wrap">
+        {product.featured && (
+          <span className="px-2 py-1 text-[10px] font-black bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400 rounded-full">
+            FEATURED
+          </span>
+        )}
+        {product.newArrival && (
+          <span className="px-2 py-1 text-[10px] font-black bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400 rounded-full">
+            NEW
+          </span>
+        )}
+      </div>
+    </td>
+    <td className="p-4 md:p-6">
+      <div className="flex items-center gap-1">
+        <button
+          onClick={() => onNewArrivalToggle(product)}
+          className={`p-2 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+            product.newArrival
+              ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400'
+              : 'hover:bg-gray-100 dark:hover:bg-white/10 text-gray-500 dark:text-gray-400'
+          }`}
+          aria-label={product.newArrival ? 'Remove from new arrivals' : 'Mark as new arrival'}
+        >
+          <Sparkles size={16} />
+        </button>
+        <button
+          onClick={() => onEdit(product)}
+          className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-all focus:outline-none focus:ring-2 focus:ring-purple-500"
+          aria-label="Edit product"
+        >
+          <Edit2 size={16} />
+        </button>
+        <button
+          onClick={() => onDelete(product)}
+          className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-all focus:outline-none focus:ring-2 focus:ring-red-500"
+          aria-label="Delete product"
+        >
+          <Trash2 size={16} />
+        </button>
+      </div>
+    </td>
+  </tr>
+));
+
+ProductRow.displayName = 'ProductRow';
+
+// ============================================================================
+// Main Products Component
+// ============================================================================
+const Products = () => {
+  // Data state
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [pagination, setPagination] = useState({ page: 0, size: 10, totalElements: 0, totalPages: 0 });
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedBrand, setSelectedBrand] = useState('All Brands');
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState(null); // null = add mode
-  const [formData, setFormData] = useState({
-    name: '',
-    brand: '',
-    price: '',
-    categoryId: '',
-    description: '',
-    images: [],
-  });
-  const [formLoading, setFormLoading] = useState(false);
-  const [imageFiles, setImageFiles] = useState([]);
 
-  const fetchProducts = async () => {
+  // Pagination
+  const [pagination, setPagination] = useState({
+    page: 0,
+    size: 10,
+    totalElements: 0,
+    totalPages: 0,
+  });
+  const [pageSize, setPageSize] = useState(10);
+
+  // Filters
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [selectedBrand, setSelectedBrand] = useState('');
+  const [selectedGender, setSelectedGender] = useState('');
+  const [categories, setCategories] = useState([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState('');
+
+  // Modal state
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
+
+  // UI state
+  const [toast, setToast] = useState(null);
+  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, product: null, action: null });
+
+  // Search debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setPagination(prev => ({ ...prev, page: 0 }));
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Fetch categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await getAllCategories();
+        setCategories(data || []);
+      } catch (err) {
+        console.error('Failed to load categories:', err);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  // Fetch products
+  const fetchProducts = useCallback(async () => {
     setLoading(true);
+    setError('');
     try {
       const params = {
         page: pagination.page,
-        size: pagination.size,
+        size: pageSize,
         sort: 'createdAt,desc',
-        search: searchQuery || undefined,
-        // brand filter if needed
+        search: debouncedSearch || undefined,
+        categoryId: selectedCategoryId || undefined,
+        brand: selectedBrand || undefined,
+        gender: selectedGender || undefined,
       };
-      if (selectedBrand !== 'All Brands') params.brand = selectedBrand;
       const data = await getAllProducts(params);
       setProducts(data.content || []);
       setPagination({
@@ -267,354 +309,392 @@ export default function Products() {
         totalPages: data.totalPages,
       });
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Failed to load products');
+      showToast(err.message || 'Failed to load products', 'error');
     } finally {
       setLoading(false);
     }
-  };
+  }, [pagination.page, pageSize, debouncedSearch, selectedCategoryId, selectedBrand, selectedGender]);
 
   useEffect(() => {
     fetchProducts();
-  }, [pagination.page, pagination.size, searchQuery, selectedBrand]);
+  }, [fetchProducts]);
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this product?')) {
-      try {
-        await deleteProduct(id);
-        await fetchProducts(); // refresh
-      } catch (err) {
-        setError(err.message);
-      }
+  // Toast helper
+  const showToast = (message, type = 'info') => {
+    setToast({ message, type });
+  };
+
+  // Action handlers
+  const handleDelete = async (product) => {
+    setConfirmDialog({
+      isOpen: true,
+      product,
+      action: async () => {
+        try {
+          await deleteProduct(product.id);
+          await fetchProducts();
+          showToast(`"${product.name}" has been deleted successfully`, 'success');
+        } catch (err) {
+          showToast(err.message || 'Failed to delete product', 'error');
+        }
+      },
+    });
+  };
+
+  const handleNewArrivalToggle = async (product) => {
+    try {
+      await toggleNewArrival(product.id, !product.newArrival);
+      showToast(
+        `"${product.name}" ${!product.newArrival ? 'marked as' : 'removed from'} new arrivals`,
+        'success'
+      );
+      await fetchProducts();
+    } catch (err) {
+      showToast(err.message || 'Failed to update new arrival status', 'error');
     }
   };
 
-  const handleFeature = async (id, isFeatured) => {
-    try {
-      if (isFeatured) {
-        await featureProduct(id, { featured: true });
-      } else {
-        await unfeatureProduct(id);
-      }
-      await fetchProducts();
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
-  const handleNewArrival = async (id, isNewArrival) => {
-    try {
-      await toggleNewArrival(id, isNewArrival);
-      await fetchProducts();
-    } catch (err) {
-      setError(err.message);
-    }
+  const openAddModal = () => {
+    setEditingProduct(null);
+    setIsFormOpen(true);
   };
 
   const openEditModal = (product) => {
     setEditingProduct(product);
-    setFormData({
-      name: product.name,
-      brand: product.brand,
-      price: product.price,
-      categoryId: product.categoryId,
-      description: product.description,
-      images: product.images || [],
-    });
-    setImageFiles([]);
-    setIsAddModalOpen(true);
+    setIsFormOpen(true);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setFormLoading(true);
-    try {
-      // For simplicity, we assume image upload is handled separately (we can later add file upload)
-      // In a real scenario, you'd upload images first and get URLs, then pass to product API.
-      const productData = { ...formData };
-      if (editingProduct) {
-        await updateProduct(editingProduct.id, productData);
-      } else {
-        await createProduct(productData);
-      }
-      await fetchProducts();
-      setIsAddModalOpen(false);
-      setEditingProduct(null);
-      setFormData({ name: '', brand: '', price: '', categoryId: '', description: '', images: [] });
-      setImageFiles([]);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setFormLoading(false);
+  const handleFormSuccess = () => {
+    setIsFormOpen(false);
+    setEditingProduct(null);
+    fetchProducts();
+    showToast(editingProduct ? 'Product updated successfully' : 'Product created successfully', 'success');
+  };
+
+  const handleFormError = (errorMsg) => {
+    showToast(errorMsg, 'error');
+  };
+
+  const resetFilters = () => {
+    setSearchQuery('');
+    setDebouncedSearch('');
+    setSelectedBrand('');
+    setSelectedGender('');
+    setSelectedCategoryId('');
+    setPagination(prev => ({ ...prev, page: 0 }));
+  };
+
+  // Pagination
+  const goToPage = (newPage) => {
+    if (newPage >= 0 && newPage < pagination.totalPages) {
+      setPagination(prev => ({ ...prev, page: newPage }));
     }
   };
 
+  const handlePageSizeChange = (newSize) => {
+    setPageSize(newSize);
+    setPagination(prev => ({ ...prev, page: 0 }));
+  };
+
+  const getVisiblePages = () => {
+    const total = pagination.totalPages;
+    const current = pagination.page;
+    const delta = 2;
+    const range = [];
+    for (let i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) {
+      range.push(i);
+    }
+    if (current - delta > 2) range.unshift('...');
+    if (current + delta < total - 1) range.push('...');
+    range.unshift(1);
+    if (total > 1) range.push(total);
+    return range;
+  };
+
+  // Memoized brand options
+  const brandOptions = useMemo(() => {
+    const brands = new Set(products.map(p => p.brand).filter(Boolean));
+    return ['All Brands', ...Array.from(brands)];
+  }, [products]);
+
+  // Active filters count
+  const activeFiltersCount = [selectedCategoryId, selectedBrand, selectedGender, searchQuery].filter(Boolean).length;
+
+  // Loading skeletons
+  const skeletons = useMemo(() => Array(pageSize).fill(null).map((_, i) => <ProductRowSkeleton key={`skeleton-${i}`} />), [pageSize]);
+
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between" data-aos="fade-down">
+    <div className="space-y-6 md:space-y-8 p-4 md:p-6 max-w-[1600px] mx-auto">
+      {/* Toast Notifications */}
+      <AnimatePresence>
+        {toast && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(null)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog({ isOpen: false, product: null, action: null })}
+        onConfirm={confirmDialog.action}
+        title="Delete Product"
+        message={`Are you sure you want to delete "${confirmDialog.product?.name}"? This action cannot be undone.`}
+        confirmText="Delete"
+        variant="danger"
+      />
+
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-black tracking-tighter italic uppercase">Products</h1>
-          <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mt-1">Manage your sneaker inventory</p>
+          <h1 className="text-3xl md:text-4xl font-black tracking-tighter italic uppercase bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
+            Products
+          </h1>
+          <p className="text-gray-500 dark:text-gray-400 text-xs font-bold uppercase tracking-widest mt-1">
+            Manage your inventory
+          </p>
         </div>
-        <button 
-          onClick={() => { setEditingProduct(null); setFormData({ name: '', brand: '', price: '', categoryId: '', description: '', images: [] }); setIsAddModalOpen(true); }}
-          className="btn-primary flex items-center gap-2 py-3 px-6 text-xs"
+        <button
+          onClick={openAddModal}
+          className="btn-primary flex items-center justify-center gap-2 py-3 px-6 text-sm bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl font-black uppercase tracking-widest transition-all shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-dark-bg"
         >
-          <Plus size={18} /> ADD NEW PRODUCT
+          <Plus size={18} /> Add New Product
         </button>
       </div>
 
-      {/* Controls */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4" data-aos="fade-up">
-        <div className="relative w-full sm:w-96">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-          <input 
-            type="text" 
-            placeholder="Search products..." 
+      {/* Filters Bar */}
+      <div className="flex flex-col lg:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+          <input
+            type="text"
+            placeholder="Search products by name, description..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-dark-card border border-dark-border rounded-full py-3 pl-12 pr-6 text-sm focus:outline-none focus:border-neon-purple transition-all"
+            className="w-full bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-xl py-3 pl-12 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+            aria-label="Search products"
           />
         </div>
-        <div className="flex items-center gap-2">
-          <button className="p-3 rounded-xl bg-dark-card border border-dark-border hover:border-neon-purple text-gray-400 hover:text-white transition-all">
-            <Filter size={18} />
-          </button>
+        <div className="flex flex-wrap gap-2">
+          <select
+            value={selectedCategoryId}
+            onChange={(e) => {
+              setSelectedCategoryId(e.target.value);
+              setPagination(prev => ({ ...prev, page: 0 }));
+            }}
+            className="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-xl py-3 px-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all cursor-pointer"
+            aria-label="Filter by category"
+          >
+            <option value="">All Categories</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.name}
+              </option>
+            ))}
+          </select>
           <select
             value={selectedBrand}
-            onChange={(e) => setSelectedBrand(e.target.value)}
-            className="bg-dark-card border border-dark-border rounded-xl py-3 px-6 text-xs font-bold focus:outline-none focus:border-neon-purple"
+            onChange={(e) => {
+              setSelectedBrand(e.target.value === 'All Brands' ? '' : e.target.value);
+              setPagination(prev => ({ ...prev, page: 0 }));
+            }}
+            className="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-xl py-3 px-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all cursor-pointer"
+            aria-label="Filter by brand"
           >
-            <option>All Brands</option>
-            <option>Nike</option>
-            <option>Jordan</option>
-            <option>Adidas</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="bg-dark-card border border-dark-border rounded-3xl overflow-hidden" data-aos="fade-up">
-        {loading ? (
-          <div className="p-12 text-center text-gray-500">Loading products...</div>
-        ) : error ? (
-          <div className="p-12 text-center text-neon-pink">Error: {error}</div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-dark-bg border-b border-dark-border">
-                  <th className="p-6 text-[10px] font-black uppercase tracking-widest text-gray-500">Product</th>
-                  <th className="p-6 text-[10px] font-black uppercase tracking-widest text-gray-500">Brand</th>
-                  <th className="p-6 text-[10px] font-black uppercase tracking-widest text-gray-500">Price</th>
-                  <th className="p-6 text-[10px] font-black uppercase tracking-widest text-gray-500">Stock</th>
-                  <th className="p-6 text-[10px] font-black uppercase tracking-widest text-gray-500">Rating</th>
-                  <th className="p-6 text-[10px] font-black uppercase tracking-widest text-gray-500">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-dark-border">
-                {products.map((product) => (
-                  <tr key={product.id} className="hover:bg-white/5 transition-colors group">
-                    <td className="p-6">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl overflow-hidden bg-dark-bg border border-dark-border">
-                          <img src={product.images?.[0] || '/placeholder.png'} className="w-full h-full object-cover" alt={product.name} />
-                        </div>
-                        <div>
-                          <p className="font-black text-sm">{product.name}</p>
-                          <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{product.categoryName}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="p-6">
-                      <span className="text-xs font-bold text-neon-purple uppercase tracking-widest">{product.brand}</span>
-                    </td>
-                    <td className="p-6">
-                      <span className="text-sm font-black text-neon-green">${product.price}</span>
-                    </td>
-                    <td className="p-6">
-                      <span className="text-sm font-bold">{product.stock} Units</span>
-                    </td>
-                    <td className="p-6">
-                      <div className="flex items-center gap-1 text-neon-orange">
-                        <span className="text-sm font-black">{product.rating || 'N/A'}</span>
-                      </div>
-                    </td>
-                    <td className="p-6">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleFeature(product.id, !product.featured)}
-                          className={`p-2 rounded-lg ${product.featured ? 'bg-neon-green/10 text-neon-green' : 'hover:bg-neon-purple/10 hover:text-neon-purple'} transition-all`}
-                          title={product.featured ? 'Unfeature' : 'Feature'}
-                        >
-                          <Star size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleNewArrival(product.id, !product.newArrival)}
-                          className={`p-2 rounded-lg ${product.newArrival ? 'bg-neon-orange/10 text-neon-orange' : 'hover:bg-neon-purple/10 hover:text-neon-purple'} transition-all`}
-                          title={product.newArrival ? 'Remove from new arrivals' : 'Mark as new arrival'}
-                        >
-                          <Sparkles size={16} />
-                        </button>
-                        <button onClick={() => openEditModal(product)} className="p-2 rounded-lg hover:bg-neon-purple/10 hover:text-neon-purple transition-all">
-                          <Edit2 size={16} />
-                        </button>
-                        <button onClick={() => handleDelete(product.id)} className="p-2 rounded-lg hover:bg-neon-pink/10 hover:text-neon-pink transition-all">
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* Pagination */}
-        <div className="p-6 border-t border-dark-border flex items-center justify-between">
-          <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
-            Showing {products.length} of {pagination.totalElements} entries
-          </p>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
-              disabled={pagination.page === 0}
-              className="p-2 rounded-lg border border-dark-border text-gray-500 hover:text-white transition-all disabled:opacity-50"
-            >
-              <ChevronLeft size={18} />
-            </button>
-            {[...Array(Math.min(5, pagination.totalPages))].map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setPagination(prev => ({ ...prev, page: i }))}
-                className={`w-8 h-8 rounded-lg font-black text-xs ${pagination.page === i ? 'bg-neon-purple text-white' : 'hover:bg-white/5 text-gray-500'}`}
-              >
-                {i + 1}
-              </button>
+            {brandOptions.map((brand) => (
+              <option key={brand} value={brand}>
+                {brand}
+              </option>
             ))}
+          </select>
+          <select
+            value={selectedGender}
+            onChange={(e) => {
+              setSelectedGender(e.target.value);
+              setPagination(prev => ({ ...prev, page: 0 }));
+            }}
+            className="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-xl py-3 px-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all cursor-pointer"
+            aria-label="Filter by gender"
+          >
+            <option value="">All Genders</option>
+            <option value="MEN">Men</option>
+            <option value="WOMEN">Women</option>
+            <option value="UNISEX">Unisex</option>
+          </select>
+          
+          {activeFiltersCount > 0 && (
             <button
-              onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
-              disabled={pagination.page + 1 >= pagination.totalPages}
-              className="p-2 rounded-lg border border-dark-border text-gray-500 hover:text-white transition-all disabled:opacity-50"
+              onClick={resetFilters}
+              className="flex items-center gap-2 px-4 py-3 rounded-xl bg-gray-100 dark:bg-dark-border text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/10 transition-all text-sm font-medium"
+              aria-label="Clear all filters"
             >
-              <ChevronRight size={18} />
+              <RotateCcw size={16} />
+              Clear ({activeFiltersCount})
             </button>
-          </div>
+          )}
+          
+          <button
+            onClick={fetchProducts}
+            className="p-3 rounded-xl bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border hover:border-purple-500 text-gray-500 hover:text-purple-600 dark:hover:text-purple-400 transition-all"
+            aria-label="Refresh products"
+            title="Refresh"
+          >
+            <Filter size={18} />
+          </button>
         </div>
       </div>
 
-      {/* Add/Edit Modal */}
+      {/* Error Message */}
       <AnimatePresence>
-        {isAddModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsAddModalOpen(false)}
-              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-            />
-            <motion.div 
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="relative w-full max-w-2xl bg-dark-card border border-dark-border rounded-3xl p-8 shadow-2xl"
-            >
-              <div className="flex items-center justify-between mb-8">
-                <h3 className="text-3xl font-black tracking-tighter italic uppercase">
-                  {editingProduct ? 'Edit Product' : 'Add New Sneaker'}
-                </h3>
-                <button onClick={() => setIsAddModalOpen(false)} className="text-gray-500 hover:text-white">
-                  <Plus size={24} className="rotate-45" />
-                </button>
-              </div>
-
-              <form onSubmit={handleSubmit}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">Product Name</label>
-                    <input
-                      type="text"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      placeholder="e.g. Air Jordan 1"
-                      className="w-full bg-dark-bg border border-dark-border rounded-xl p-4 focus:border-neon-purple outline-none"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">Brand</label>
-                    <select
-                      value={formData.brand}
-                      onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                      className="w-full bg-dark-bg border border-dark-border rounded-xl p-4 focus:border-neon-purple outline-none"
-                      required
-                    >
-                      <option value="">Select brand</option>
-                      <option>Nike</option>
-                      <option>Jordan</option>
-                      <option>Adidas</option>
-                      <option>New Balance</option>
-                    </select>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">Price (USD)</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={formData.price}
-                      onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                      placeholder="180"
-                      className="w-full bg-dark-bg border border-dark-border rounded-xl p-4 focus:border-neon-purple outline-none"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">Category</label>
-                    <select
-                      value={formData.categoryId}
-                      onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                      className="w-full bg-dark-bg border border-dark-border rounded-xl p-4 focus:border-neon-purple outline-none"
-                      required
-                    >
-                      <option value="">Select category</option>
-                      {/* Populate categories from API */}
-                    </select>
-                  </div>
-                  <div className="md:col-span-2 space-y-2">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">Description</label>
-                    <textarea
-                      rows="3"
-                      value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      placeholder="Product description..."
-                      className="w-full bg-dark-bg border border-dark-border rounded-xl p-4 focus:border-neon-purple outline-none"
-                    />
-                  </div>
-                  <div className="md:col-span-2 space-y-2">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">Product Images</label>
-                    <div className="border-2 border-dashed border-dark-border rounded-2xl p-8 text-center hover:border-neon-purple transition-colors cursor-pointer group">
-                      <ImageIcon size={32} className="text-gray-500 group-hover:text-neon-purple mx-auto mb-2 transition-colors" />
-                      <p className="text-xs font-bold text-gray-500">Click to upload or drag and drop</p>
-                      <input type="file" multiple className="hidden" onChange={(e) => setImageFiles(Array.from(e.target.files))} />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <button type="button" onClick={() => setIsAddModalOpen(false)} className="flex-1 py-4 rounded-xl border border-dark-border font-black text-xs uppercase tracking-widest hover:bg-white/5 transition-all">
-                    CANCEL
-                  </button>
-                  <button type="submit" disabled={formLoading} className="flex-1 btn-primary py-4 text-xs flex items-center justify-center gap-2">
-                    {formLoading && <Loader2 size={16} className="animate-spin" />}
-                    {editingProduct ? 'UPDATE PRODUCT' : 'SAVE PRODUCT'}
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="p-4 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-400 text-sm flex items-center gap-2"
+          >
+            <AlertCircle size={18} />
+            {error}
+          </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Products Table */}
+      <div className="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-3xl overflow-hidden shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse min-w-[800px]">
+            <thead>
+              <tr className="bg-gray-50 dark:bg-dark-bg border-b border-gray-200 dark:border-dark-border">
+                <th className="p-4 md:p-6 text-[10px] font-black uppercase tracking-widest text-gray-500">Product</th>
+                <th className="p-4 md:p-6 text-[10px] font-black uppercase tracking-widest text-gray-500">Brand</th>
+                <th className="p-4 md:p-6 text-[10px] font-black uppercase tracking-widest text-gray-500">Price</th>
+                <th className="p-4 md:p-6 text-[10px] font-black uppercase tracking-widest text-gray-500">Stock</th>
+                <th className="p-4 md:p-6 text-[10px] font-black uppercase tracking-widest text-gray-500">Status</th>
+                <th className="p-4 md:p-6 text-[10px] font-black uppercase tracking-widest text-gray-500">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200 dark:divide-dark-border">
+              {loading ? (
+                skeletons
+              ) : products.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="p-12 text-center">
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="flex flex-col items-center gap-3"
+                    >
+                      <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-dark-border flex items-center justify-center">
+                        <Search size={32} className="text-gray-400" />
+                      </div>
+                      <p className="text-gray-500 dark:text-gray-400 font-medium">No products found</p>
+                      <p className="text-sm text-gray-400">Try adjusting your filters or add a new product</p>
+                      <button
+                        onClick={resetFilters}
+                        className="mt-2 px-4 py-2 text-sm text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-500/10 rounded-lg transition-colors"
+                      >
+                        Clear all filters
+                      </button>
+                    </motion.div>
+                  </td>
+                </tr>
+              ) : (
+                products.map((product) => {
+                  const thumbnail = product.resources?.find((r) => r.isPrimary)?.url ||
+                    product.resources?.[0]?.url || jordanPlaceholder;
+                  return (
+                    <ProductRow
+                      key={product.id}
+                      product={product}
+                      thumbnail={thumbnail}
+                      onNewArrivalToggle={handleNewArrivalToggle}
+                      onEdit={openEditModal}
+                      onDelete={handleDelete}
+                    />
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        {!loading && products.length > 0 && (
+          <div className="p-4 md:p-6 border-t border-gray-200 dark:border-dark-border flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                Showing {pagination.page * pageSize + 1}-
+                {Math.min((pagination.page + 1) * pageSize, pagination.totalElements)} of {pagination.totalElements} entries
+              </p>
+              <select
+                value={pageSize}
+                onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                className="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                aria-label="Items per page"
+              >
+                {[10, 20, 50, 100].map(size => (
+                  <option key={size} value={size}>{size} / page</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => goToPage(pagination.page - 1)}
+                disabled={pagination.page === 0}
+                className="p-2 rounded-lg border border-gray-200 dark:border-dark-border text-gray-500 hover:text-gray-700 dark:hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-purple-500"
+                aria-label="Previous page"
+              >
+                <ChevronLeft size={18} />
+              </button>
+              {getVisiblePages().map((page, idx) =>
+                page === '...' ? (
+                  <span key={`ellipsis-${idx}`} className="px-2 text-gray-500">...</span>
+                ) : (
+                  <button
+                    key={page}
+                    onClick={() => goToPage(page - 1)}
+                    className={`w-8 h-8 rounded-lg font-black text-xs transition-all focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                      pagination.page === page - 1
+                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
+                        : 'hover:bg-gray-100 dark:hover:bg-white/5 text-gray-500'
+                    }`}
+                    aria-label={`Go to page ${page}`}
+                    aria-current={pagination.page === page - 1 ? 'page' : undefined}
+                  >
+                    {page}
+                  </button>
+                )
+              )}
+              <button
+                onClick={() => goToPage(pagination.page + 1)}
+                disabled={pagination.page + 1 >= pagination.totalPages}
+                className="p-2 rounded-lg border border-gray-200 dark:border-dark-border text-gray-500 hover:text-gray-700 dark:hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-purple-500"
+                aria-label="Next page"
+              >
+                <ChevronRight size={18} />
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Product Form Modal */}
+      <ProductForm
+        isOpen={isFormOpen}
+        onClose={() => {
+          setIsFormOpen(false);
+          setEditingProduct(null);
+        }}
+        product={editingProduct}
+        onSuccess={handleFormSuccess}
+        onError={handleFormError}
+      />
     </div>
   );
-}
+};
+
+export default Products;

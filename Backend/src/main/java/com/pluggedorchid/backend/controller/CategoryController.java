@@ -1,14 +1,11 @@
 package com.pluggedorchid.backend.controller;
 
-import com.pluggedorchid.backend.dto.CategoryRequest;
-import com.pluggedorchid.backend.dto.CategoryResponse;
+import com.pluggedorchid.backend.dto.CategoryDto;
 import com.pluggedorchid.backend.service.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -27,7 +24,7 @@ public class CategoryController {
     // Public: Get all categories
     @GetMapping
     @Operation(summary = "Get all categories")
-    public ResponseEntity<List<CategoryResponse>> getAllCategories() {
+    public ResponseEntity<List<CategoryDto>> getAllCategories() {
         return ResponseEntity.ok(categoryService.getAllCategories()); // or List if you prefer
     }
 
@@ -36,14 +33,14 @@ public class CategoryController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Create a new category (Admin only)")
-    public ResponseEntity<CategoryResponse> createCategory(@Valid @RequestBody CategoryRequest request) {
+    public ResponseEntity<CategoryDto> createCategory(@Valid @RequestBody CategoryDto request) {
         return ResponseEntity.ok(categoryService.createCategory(request));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Update a category (Admin only)")
-    public ResponseEntity<CategoryResponse> updateCategory(@PathVariable UUID id, @Valid @RequestBody CategoryRequest request) {
+    public ResponseEntity<CategoryDto> updateCategory(@PathVariable UUID id, @Valid @RequestBody CategoryDto request) {
         return ResponseEntity.ok(categoryService.updateCategory(id, request));
     }
 

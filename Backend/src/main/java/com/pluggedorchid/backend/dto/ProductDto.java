@@ -133,8 +133,8 @@ public record ProductDto(
         boolean newArrival,
         boolean featured,
         Timestamp featuredUntil,
-        CategoryResponse category,
-        CategoryTypeResponse categoryType,
+        UUID categoryId,               // was CategoryDto category
+        UUID categoryTypeId,           // was CategoryTypeResponse categoryType
         List<ProductVariantDto> variants,
         List<ProductResourceDto> resources,
         LocalDateTime createdAt,
