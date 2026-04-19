@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import Shop from './pages/Shop';
-import Product from './pages/Product';
+import Product from './pages/ProductDetails';
 import Wishlist from './pages/Wishlist';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
@@ -13,6 +13,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import NotFound from './pages/NotFound';
 import { useAuthStore } from './store/authStore';
+import { Toaster } from 'react-hot-toast';
 
 export default function App() {
   const { checkAuth } = useAuthStore();
@@ -22,6 +23,8 @@ export default function App() {
   }, [checkAuth]);
 
   return (
+    <>
+    <Toaster />
     <Router>
       <Routes>
         {/* Public auth pages (no layout) */}
@@ -42,5 +45,6 @@ export default function App() {
         </Route>
       </Routes>
     </Router>
+    </>
   );
 }

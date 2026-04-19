@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { useWishlistStore } from '../store/wishlistStore';
 import { 
@@ -12,23 +12,65 @@ import {
   Mail,
   Shield,
   MapPin,
-  Loader2
+  Loader2,
+  Calendar
 } from 'lucide-react';
 import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { motion } from 'motion/react';
+import { getUserOrders } from '../api/orders';
+import { showToast } from '../utils/toast';
 
 export default function Profile() {
-  const { user, isAuthenticated, isLoading, logout } = useAuthStore();
-  const { items: wishlistItems } = useWishlistStore();
+  const { user, isAuthenticated, isLoading: authLoading, logout } = useAuthStore();
+  const { totalItems: wishlistCount } = useWishlistStore();
   const navigate = useNavigate();
+
+  // Orders state
+  const [orders, setOrders] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(true);
+  const [ordersError, setOrdersError] = useState(null);
+
+  // Fetch user orders
+  useEffect(() => {
+    if (isAuthenticated) {
+      const fetchOrders = async () => {
+        setOrdersLoading(true);
+        setOrdersError(null);
+        try {
+          const data = await getUserOrders(0, 5, 'createdAt,desc');
+          setOrders(data.content || []);
+        } catch (err) {
+          setOrdersError(err.message);
+          showToast('Failed to load orders', 'error');
+        } finally {
+          setOrdersLoading(false);
+        }
+      };
+      fetchOrders();
+    }
+  }, [isAuthenticated]);
 
   const handleLogout = () => {
     logout();
     navigate('/');
   };
 
+  // Helper to format date
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  };
+
+  // Get member since (from user.createdAt if available)
+  const memberSince = user?.createdAt ? new Date(user.createdAt).getFullYear() : '2024';
+
   // Show loading spinner while checking auth
-  if (isLoading) {
+  if (authLoading) {
     return (
       <div className="container mx-auto px-4 py-20 flex items-center justify-center">
         <Loader2 size={48} className="animate-spin text-primary-accent" />
@@ -87,15 +129,15 @@ export default function Profile() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6" data-aos="fade-up">
             <div className="bg-app-card border border-app-border p-6 rounded-3xl">
               <p className="text-[10px] font-black text-app-text-muted uppercase tracking-widest mb-2">Total Orders</p>
-              <p className="text-3xl font-black tracking-tighter">12</p> {/* TODO: fetch real order count */}
+              <p className="text-3xl font-black tracking-tighter">{orders.length}</p>
             </div>
             <div className="bg-app-card border border-app-border p-6 rounded-3xl">
               <p className="text-[10px] font-black text-app-text-muted uppercase tracking-widest mb-2">Wishlist Items</p>
-              <p className="text-3xl font-black tracking-tighter">{wishlistItems.length}</p>
+              <p className="text-3xl font-black tracking-tighter">{wishlistCount || 0}</p>
             </div>
             <div className="bg-app-card border border-app-border p-6 rounded-3xl">
               <p className="text-[10px] font-black text-app-text-muted uppercase tracking-widest mb-2">Member Since</p>
-              <p className="text-3xl font-black tracking-tighter">2024</p> {/* TODO: fetch from API */}
+              <p className="text-3xl font-black tracking-tighter">{memberSince}</p>
             </div>
           </div>
 
@@ -103,32 +145,76 @@ export default function Profile() {
           <div data-aos="fade-up" data-aos-delay="100">
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-3xl font-black tracking-tighter italic uppercase">Recent Orders</h2>
-              <button className="text-primary-accent text-[10px] font-black uppercase tracking-widest hover:underline">View All</button>
+              {orders.length > 0 && (
+                <button className="text-primary-accent text-[10px] font-black uppercase tracking-widest hover:underline">
+                  View All
+                </button>
+              )}
             </div>
 
-            <div className="space-y-4">
-              {[1, 2].map(order => (
-                <div key={order} className="bg-app-card border border-app-border rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-6">
-                  <div className="flex items-center gap-6">
-                    <div className="w-16 h-16 rounded-xl bg-app-bg border border-app-border flex items-center justify-center text-primary-accent">
-                      <ShoppingBag size={24} />
+            {ordersLoading ? (
+              <div className="flex justify-center py-12">
+                <Loader2 size={32} className="animate-spin text-primary-accent" />
+              </div>
+            ) : ordersError ? (
+              <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-8 text-center">
+                <p className="text-red-500 text-sm">Failed to load orders: {ordersError}</p>
+                <button 
+                  onClick={() => window.location.reload()} 
+                  className="btn-outline mt-4 text-xs"
+                >
+                  Retry
+                </button>
+              </div>
+            ) : orders.length === 0 ? (
+              <div className="bg-app-card border border-app-border rounded-3xl p-12 text-center">
+                <ShoppingBag size={48} className="mx-auto text-app-text-muted mb-4" />
+                <p className="text-app-text-muted font-bold uppercase tracking-widest text-sm mb-4">
+                  No orders yet
+                </p>
+                <Link to="/shop" className="btn-primary text-sm py-2 px-6">
+                  START SHOPPING
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {orders.map((order) => (
+                  <div key={order.id} className="bg-app-card border border-app-border rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div className="flex items-center gap-6">
+                      <div className="w-16 h-16 rounded-xl bg-app-bg border border-app-border flex items-center justify-center text-primary-accent">
+                        <ShoppingBag size={24} />
+                      </div>
+                      <div>
+                        <p className="font-black text-lg">Order #{order.id?.slice(0, 8)}...</p>
+                        <p className="text-[10px] text-app-text-muted font-bold uppercase tracking-widest">
+                          Placed on {formatDate(order.createdAt)}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-black text-lg">Order #PLG-{1000 + order}</p>
-                      <p className="text-[10px] text-app-text-muted font-bold uppercase tracking-widest">Placed on March {20 - order}, 2026</p>
+                    
+                    <div className="flex items-center gap-8">
+                      <div className="text-center md:text-right">
+                        <p className={`text-xs font-black uppercase tracking-widest mb-1 ${
+                          order.status === 'DELIVERED' ? 'text-green-500' :
+                          order.status === 'CANCELLED' ? 'text-red-500' :
+                          order.status === 'CONFIRMED' ? 'text-blue-500' :
+                          'text-yellow-500'
+                        }`}>
+                          {order.status}
+                        </p>
+                        <p className="text-xl font-black">${order.totalAmount?.toFixed(2) || '0.00'}</p>
+                      </div>
+                      <Link 
+                        to={`/orders/${order.id}`}
+                        className="btn-outline py-2 px-6 text-xs"
+                      >
+                        DETAILS
+                      </Link>
                     </div>
                   </div>
-                  
-                  <div className="flex items-center gap-8">
-                    <div className="text-center md:text-right">
-                      <p className="text-xs font-black text-tertiary-accent uppercase tracking-widest mb-1">Delivered</p>
-                      <p className="text-xl font-black">$245.00</p>
-                    </div>
-                    <button className="btn-outline py-2 px-6 text-xs">DETAILS</button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Account Details */}
@@ -146,9 +232,27 @@ export default function Profile() {
                 <div className="w-10 h-10 rounded-xl bg-app-bg border border-app-border flex items-center justify-center text-tertiary-accent"><Shield size={20} /></div>
                 <div>
                   <p className="text-[10px] font-black text-app-text-muted uppercase tracking-widest">Security Status</p>
-                  <p className="text-sm font-bold">Two-Factor Enabled</p>
+                  <p className="text-sm font-bold">Password Protected</p>
                 </div>
               </div>
+              {user?.phoneNumber && (
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-app-bg border border-app-border flex items-center justify-center text-secondary-accent"><Calendar size={20} /></div>
+                  <div>
+                    <p className="text-[10px] font-black text-app-text-muted uppercase tracking-widest">Phone Number</p>
+                    <p className="text-sm font-bold">{user.phoneNumber}</p>
+                  </div>
+                </div>
+              )}
+              {user?.createdAt && (
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-app-bg border border-app-border flex items-center justify-center text-quaternary-accent"><Calendar size={20} /></div>
+                  <div>
+                    <p className="text-[10px] font-black text-app-text-muted uppercase tracking-widest">Joined</p>
+                    <p className="text-sm font-bold">{formatDate(user.createdAt)}</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

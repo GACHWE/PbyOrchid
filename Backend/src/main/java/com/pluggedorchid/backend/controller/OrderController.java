@@ -53,6 +53,15 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getOrderByIdForUser(id, user));
     }
 
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Cancel order (user can cancel only if PENDING, admin can cancel even if CONFIRMED)")
+    public ResponseEntity<OrderResponse> cancelOrder(
+            @AuthenticationPrincipal User user,
+            @PathVariable UUID id
+    ) {
+        return ResponseEntity.ok(orderService.cancelOrder(id, user));
+    }
+
     // ==================== ADMIN ONLY ====================
 
     @GetMapping("/admin")
@@ -62,10 +71,17 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getAllOrders(pageable));
     }
 
-    @PutMapping("/{id}/status")
+    @PutMapping("/admin/{id}/confirm")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Update order status (Admin only)")
-    public ResponseEntity<OrderResponse> updateOrderStatus(@PathVariable UUID id, @RequestParam String status) {
-        return ResponseEntity.ok(orderService.updateOrderStatus(id, status));
+    @Operation(summary = "Confirm order and deduct stock (Admin only)")
+    public ResponseEntity<OrderResponse> confirmOrder(@PathVariable UUID id) {
+        return ResponseEntity.ok(orderService.confirmOrder(id));
+    }
+
+    @PutMapping("/admin/{id}/deliver")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Mark order as delivered (Admin only)")
+    public ResponseEntity<OrderResponse> deliverOrder(@PathVariable UUID id) {
+        return ResponseEntity.ok(orderService.markAsDelivered(id));
     }
 }

@@ -1,15 +1,21 @@
 package com.pluggedorchid.backend.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.UUID;
 
 public record OrderRequest(
-        @NotEmpty List<OrderItemRequest> items        ) {
+
+        @NotEmpty List<OrderItemRequest> items,
+        @NotBlank String recipientName,
+        @NotBlank String whatsappNumber      ) {
+
     public record OrderItemRequest(
             @NotNull UUID productId,
             @NotNull Integer quantity,
+
             String size,
             String color
     ) {}

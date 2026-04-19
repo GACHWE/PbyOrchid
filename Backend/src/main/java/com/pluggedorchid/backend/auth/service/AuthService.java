@@ -12,7 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetails;  // ✅ import uncommented
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,13 +31,17 @@ public class AuthService {
         if (userRepository.existsByEmail(request.email())) {
             throw new BadRequestException("Email already registered");
         }
+        if (userRepository.existsByPhoneNumber(request.phoneNumber())) {
+            throw new BadRequestException("Phone number already registered");
+        }
 
         User user = new User();
         user.setEmail(request.email());
         user.setPassword(passwordEncoder.encode(request.password()));
         user.setFirstName(request.firstName());
         user.setLastName(request.lastName());
-        user.setRole(Role.USER);   // default role
+        user.setPhoneNumber(request.phoneNumber());
+        user.setRole(Role.USER);
         userRepository.save(user);
 
         return login(new LoginRequest(request.email(), request.password()));
@@ -48,17 +52,20 @@ public class AuthService {
                 new UsernamePasswordAuthenticationToken(request.email(), request.password())
         );
 
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        String accessToken = jwtService.generateAccessToken(userDetails);
-        String refreshToken = jwtService.generateRefreshToken(userDetails);
+        // Assume User implements UserDetails
+        User user = (User) authentication.getPrincipal();
+        String accessToken = jwtService.generateAccessToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
 
         return new JwtResponse(
                 accessToken,
                 refreshToken,
                 "Bearer",
-                ((User) userDetails).getId(),
-                userDetails.getUsername(),
-                userDetails.getAuthorities().iterator().next().getAuthority()
+                user.getId(),
+                user.getFirstName(),
+                user.getEmail(),
+                user.getRole().name(),          // role as string, e.g. "USER"
+                user.getPhoneNumber()            // ✅ added phoneNumber
         );
     }
 
@@ -66,18 +73,22 @@ public class AuthService {
         if (!jwtService.isRefreshTokenValid(request.refreshToken())) {
             throw new BadRequestException("Invalid refresh token");
         }
+
         String email = jwtService.extractUsername(request.refreshToken());
-        UserDetails userDetails = userRepository.findByEmail(email)
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BadRequestException("User not found"));
 
-        String newAccessToken = jwtService.generateAccessToken(userDetails);
+        String newAccessToken = jwtService.generateAccessToken(user);
+
         return new JwtResponse(
                 newAccessToken,
                 request.refreshToken(),
                 "Bearer",
-                ((User) userDetails).getId(),
-                userDetails.getUsername(),
-                userDetails.getAuthorities().iterator().next().getAuthority()
+                user.getId(),
+                user.getFirstName(),
+                user.getEmail(),
+                user.getRole().name(),
+                user.getPhoneNumber()            // ✅ added phoneNumber
         );
     }
 }
