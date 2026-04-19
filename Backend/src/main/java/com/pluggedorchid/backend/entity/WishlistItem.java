@@ -34,5 +34,6 @@ public class WishlistItem {
     private LocalDateTime addedAt;
 
     public void setUser(User user) {
+        this.user = user;
     }
 }

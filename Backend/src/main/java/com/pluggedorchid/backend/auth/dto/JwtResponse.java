@@ -7,6 +7,8 @@ public record JwtResponse(
         String refreshToken,
         String tokenType,
         UUID userId,
+        String firstName,
         String email,
-        String role
+        String role,
+        String phoneNumber
 ) {}

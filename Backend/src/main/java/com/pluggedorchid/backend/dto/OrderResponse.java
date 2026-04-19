@@ -1,5 +1,7 @@
 package com.pluggedorchid.backend.dto;
 
+import com.pluggedorchid.backend.dto.ProductDto;
+import com.pluggedorchid.backend.entity.OrderStatus;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -10,8 +12,10 @@ public record OrderResponse(
         UUID buyerId,
         List<OrderItemResponse> items,
         BigDecimal totalAmount,
-        String status,
-        String shippingAddress,
+        OrderStatus status,
+        String recipientName,
+        String whatsappNumber,
+//        String shippingAddress,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {

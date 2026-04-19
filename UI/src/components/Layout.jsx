@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import Navbar from './Navbar';
 import Footer from './Footer';
-import ToastContainer from './Toast';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 import { useThemeStore } from '../store/themeStore';
@@ -36,8 +36,8 @@ export default function Layout() {
   if (isAdminRoute) {
     return (
       <div className={theme}>
+        <Toaster position="bottom-right" />
         <Outlet />
-        <ToastContainer />
       </div>
     );
   }
@@ -49,7 +49,7 @@ export default function Layout() {
         <Outlet />
       </main>
       <Footer />
-      <ToastContainer />
+      <Toaster position="bottom-right" />
     </div>
   );
 }

@@ -38,12 +38,14 @@ export const API_URLS = {
   FILE_HEALTH: "/api/v1/files/health",
 
   // NEW ORDERS (Buyer + Admin)
-  CREATE_ORDER: "/api/v1/orders",
+ CREATE_ORDER: "/api/v1/orders",
   GET_USER_ORDERS: "/api/v1/orders",
   GET_ORDER_BY_ID: (id) => `/api/v1/orders/${id}`,
+  CANCEL_ORDER: (id) => `/api/v1/orders/${id}`,
   ADMIN_GET_ALL_ORDERS: "/api/v1/orders/admin",
-  ADMIN_UPDATE_ORDER_STATUS: (id, status) => `/api/v1/orders/${id}/status?status=${status}`,
-
+  ADMIN_CONFIRM_ORDER: (id) => `/api/v1/orders/admin/${id}/confirm`,
+  ADMIN_DELIVER_ORDER: (id) => `/api/v1/orders/admin/${id}/deliver`,
+  
   // NEW PRODUCTS (enhanced)
   GET_PRODUCTS_V2: "/api/v1/products",      // with filters, pagination
   GET_PRODUCT_BY_ID_V2: (id) => `/api/v1/products/${id}`,

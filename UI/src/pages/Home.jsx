@@ -506,7 +506,7 @@ export default function Home() {
         </div>
       </section>
       
-      {/* Community / Social Proof (unchanged) */}
+      {/* Community / Social Proof (unchanged)
       <section className="py-24 bg-app-card overflow-hidden">
         <div className="container mx-auto px-4 text-center mb-16">
           <h2 className="text-4xl md:text-6xl font-black tracking-tighter italic mb-4" data-aos="fade-up">JOIN THE SQUAD.</h2>
@@ -524,7 +524,7 @@ export default function Home() {
             </div>
           ))}
         </div>
-      </section>
+      </section> */}
     </div>
   );
 }

@@ -28,10 +28,7 @@ public class OrderItem {
     private Product product;
 
     private Integer quantity;
-
-    @Column(precision = 12, scale = 2)
-    private BigDecimal priceAtTime;
-
-    private String size;    // captured from selected variant
+    private BigDecimal priceAtTime;   // snapshot of product price at order creation
+    private String size;
     private String color;
 }

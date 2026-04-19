@@ -1,5 +1,6 @@
 package com.pluggedorchid.backend.entity;
 
+import com.pluggedorchid.backend.entity.OrderStatus;
 import com.pluggedorchid.backend.auth.entity.User;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -26,20 +27,22 @@ public class Order {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "buyer_id", nullable = false)   // keep column name to avoid DB migration
-    private User user;          // ← CHANGED: Buyer → User + field name "user"
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();
 
-    @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal totalAmount;
 
-    @Column(nullable = false)
-    private String status; // PENDING, PAID, SHIPPED, DELIVERED, CANCELLED
+    @Enumerated(EnumType.STRING)
+    private OrderStatus status;
 
 //    private String shippingAddress;
+    // optional, can be filled by admin via separate endpoint
+    private String recipientName;
 
+    private String whatsappNumber;
     @CreationTimestamp
     private LocalDateTime createdAt;
 

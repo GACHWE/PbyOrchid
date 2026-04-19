@@ -36,7 +36,8 @@ export const useAuthStore = create(
           const user = {
             id: decoded.userId || decoded.sub,
             email: decoded.email || credentials.email,
-            name: decoded.name || credentials.email.split("@")[0],
+            firstname: decoded.name || credentials.email.split("@")[0],
+            lastname: decoded.lastName || null,
             role, // 👈 set the role
           };
 
@@ -117,7 +118,8 @@ export const useAuthStore = create(
           const user = {
             id: decoded.userId || decoded.sub,
             email: decoded.email,
-            name: decoded.name,
+            firstName: decoded.name,
+            lastName: decoded.lastName || null,
             role: decoded.authorities?.[0]?.replace("ROLE_", "") || "user",
           };
           set({ user, accessToken: token, isAuthenticated: true });
@@ -136,7 +138,8 @@ export const useAuthStore = create(
               const user = {
                 id: decoded.userId || decoded.sub,
                 email: decoded.email,
-                name: decoded.name,
+                firstName: decoded.name,
+                lastName: decoded.lastName || null,
                 role: decoded.authorities?.[0]?.replace("ROLE_", "") || "user",
               };
               set({

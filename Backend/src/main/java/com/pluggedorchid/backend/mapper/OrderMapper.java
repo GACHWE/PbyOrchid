@@ -9,5 +9,7 @@ import org.mapstruct.Mapping;
 public interface OrderMapper {
 
     @Mapping(source = "user.id", target = "buyerId")
+    @Mapping(source = "recipientName", target = "recipientName")
+    @Mapping(source = "whatsappNumber", target = "whatsappNumber")
     OrderResponse toResponse(Order order);
 }

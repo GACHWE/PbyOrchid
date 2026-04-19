@@ -3,7 +3,7 @@
 
 @theme {
   /* Default (Dark Mode) Colors */
-  --color-primary-accent: #A855F7;
+  --color-primary-accent: #A854F7;
   --color-primary-accent-end: #C026D3;
   --color-secondary-accent: #EC4899;
   --color-tertiary-accent: #84CC16;
@@ -45,7 +45,7 @@
 
 @utility glass-card {
   background-color: color-mix(in srgb, var(--color-app-card) 40%, transparent);
-  backdrop-filter: blur(12px);
+  /* backdrop-filter: blur(12px); */
   border: 1px solid color-mix(in srgb, var(--color-app-border) 20%, transparent);
 }
 
