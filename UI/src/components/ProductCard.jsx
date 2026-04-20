@@ -279,6 +279,9 @@ export default function ProductCard({ product, layout = 'grid' }) {
   const isTrending = product.featured || false;
   const rating = product.rating || 0;
 
+  // Use slug for product detail link – fallback to id if slug missing (should not happen)
+  const productLink = product.slug ? `/product/${product.slug}` : `/product/${product.id}`;
+
   const handleAddToCart = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -330,7 +333,7 @@ export default function ProductCard({ product, layout = 'grid' }) {
           layout === 'list' ? 'w-48 h-48' : 'aspect-square'
         }`}
       >
-        <Link to={`/product/${product.id}`}>
+        <Link to={productLink}>
           <img
             src={imageUrl}
             alt={product.name}
@@ -352,7 +355,7 @@ export default function ProductCard({ product, layout = 'grid' }) {
             <Heart size={20} fill={isWishlisted ? 'currentColor' : 'none'} />
           </button>
           <Link
-            to={`/product/${product.id}`}
+            to={productLink}
             className="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center hover:bg-primary-accent hover:text-white transition-all duration-300"
           >
             <Eye size={20} />
@@ -373,7 +376,7 @@ export default function ProductCard({ product, layout = 'grid' }) {
         </div>
 
         <Link
-          to={`/product/${product.id}`}
+          to={productLink}
           className="text-lg font-black tracking-tight mb-1 group-hover:text-primary-accent transition-colors line-clamp-1"
         >
           {product.name}
