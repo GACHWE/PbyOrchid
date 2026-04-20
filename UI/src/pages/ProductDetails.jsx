@@ -214,7 +214,7 @@ import {
   Star, Heart, ShoppingCart, ArrowLeft, Truck, ShieldCheck, RotateCcw,
   Plus, Minus, Check
 } from 'lucide-react';
-import { getProductById, getAllProducts } from '../api/products';
+import { getProductBySlug, getAllProducts } from '../api/products';   // ✅ changed
 import { useCartStore } from '../store/cartStore';
 import { useWishlistStore } from '../store/wishlistStore';
 import ProductCard from '../components/ProductCard';
@@ -224,7 +224,7 @@ import { showToast } from '../utils/toast';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 export default function Product() {
-  const { id } = useParams();
+  const { slug } = useParams();                                    // ✅ slug param
   const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -242,16 +242,22 @@ export default function Product() {
   
   useEffect(() => {
     const fetchProduct = async () => {
+      if (!slug) {
+        setError("No product slug provided");
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       setError(null);
       try {
-        const data = await getProductById(id);
+        const data = await getProductBySlug(slug);               // ✅ fetch by slug
         setProduct(data);
         
         // Default to first in-stock variant, or first overall
         const defaultVariant = data.variants?.find(v => v.stockQuantity > 0) || data.variants?.[0];
         setSelectedVariant(defaultVariant);
         
+        // Fetch related products by brand (if brand exists)
         if (data.brand) {
           setRelatedLoading(true);
           try {
@@ -275,8 +281,8 @@ export default function Product() {
         setLoading(false);
       }
     };
-    if (id) fetchProduct();
-  }, [id]);
+    fetchProduct();
+  }, [slug]);                                                     // ✅ depends on slug
   
   const handleAddToCart = () => {
     if (!selectedVariant) {
@@ -287,7 +293,6 @@ export default function Product() {
       showToast("This variant is out of stock!", "error");
       return;
     }
-    // ✅ Pass product (for price, name) and full variant (store uses only primitive fields)
     addToCart(product, selectedVariant, quantity);
     setIsAdded(true);
     showToast(`Added ${product.name} (${selectedVariant.color}, ${selectedVariant.size}) x${quantity} to cart!`, "success");
@@ -358,7 +363,6 @@ export default function Product() {
           
           <h1 className="text-5xl md:text-6xl font-black tracking-tighter italic mb-6 leading-none">{product.name}</h1>
           
-          {/* Price from product */}
           <div className="flex items-center gap-6 mb-8">
             <span className="text-4xl font-black text-neon-green">${product.price}</span>
             {product.originalPrice && product.originalPrice > product.price && (
@@ -369,7 +373,6 @@ export default function Product() {
           
           <p className="text-gray-400 text-lg leading-relaxed mb-10">{product.description || "No description available."}</p>
           
-          {/* Stock indicator */}
           {selectedVariant && (
             <div className="mb-4">
               {selectedVariant.stockQuantity > 0 ? (
@@ -380,7 +383,6 @@ export default function Product() {
             </div>
           )}
           
-          {/* Variant Selector - receives and returns full variant but never renders it directly */}
           {product.variants && product.variants.length > 0 && (
             <div className="mb-10">
               <VariantSelector
@@ -392,7 +394,6 @@ export default function Product() {
             </div>
           )}
           
-          {/* Quantity and Add to Cart */}
           <div className="flex flex-col sm:flex-row gap-4 mb-12">
             <div className="flex items-center bg-dark-card border border-dark-border rounded-full px-4 py-2">
               <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="p-2 hover:text-neon-purple"><Minus size={18} /></button>
@@ -413,7 +414,6 @@ export default function Product() {
             </button>
           </div>
           
-          {/* Features */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 border-t border-dark-border pt-10">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-neon-purple"><Truck size={20} /></div>
@@ -431,7 +431,6 @@ export default function Product() {
         </div>
       </div>
       
-      {/* Related Products */}
       <section className="py-24 border-t border-dark-border">
         <div className="flex items-center justify-between mb-12">
           <h2 className="text-4xl font-black tracking-tighter italic">YOU MAY ALSO LIKE.</h2>

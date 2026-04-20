@@ -40,9 +40,9 @@ public class WebSecurityConfig {
                                 "/api/v1/analytics/track", "/swagger-ui/**", "/v3/api-docs/**",
                                 "/swagger-ui.html", "/api-docs/**").permitAll()
                         // User endpoints
-                        .requestMatchers("/api/v1/wishlist/**", "/api/v1/orders/admin/**").hasRole("USER")
+                        .requestMatchers("/api/v1/wishlist/**").hasRole("USER")
                         // Admin endpoints – fix patterns to match actual URLs
-                        .requestMatchers("/api/v1/admin/**", "/api/v1/analytics/admin/**", "/api/v1/orders/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/admin/**","/api/v1/orders/admin/**", "/api/v1/analytics/admin/**", "/api/v1/orders/admin/**").hasRole("ADMIN")
                         // Everything else requires authentication
                         .anyRequest().authenticated()
                 )

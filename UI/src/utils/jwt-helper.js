@@ -3,10 +3,6 @@
 const ACCESS_TOKEN_KEY = "accessToken";
 const REFRESH_TOKEN_KEY = "refreshToken";
 
-/**
- * Store the access token in localStorage
- * @param {string} token - JWT access token
- */
 export const setAccessToken = (token) => {
   if (token) {
     localStorage.setItem(ACCESS_TOKEN_KEY, token);
@@ -15,21 +11,9 @@ export const setAccessToken = (token) => {
   }
 };
 
-/**
- * Get the access token from localStorage
- * @returns {string|null}
- */
-export const getAccessToken = () => {
-  return localStorage.getItem(ACCESS_TOKEN_KEY);
-};
+export const getAccessToken = () => localStorage.getItem(ACCESS_TOKEN_KEY);
+export const getToken = getAccessToken; // alias
 
-// Alias for backward compatibility with your existing code
-export const getToken = getAccessToken;
-
-/**
- * Store the refresh token
- * @param {string} token - JWT refresh token
- */
 export const setRefreshToken = (token) => {
   if (token) {
     localStorage.setItem(REFRESH_TOKEN_KEY, token);
@@ -38,45 +22,13 @@ export const setRefreshToken = (token) => {
   }
 };
 
-/**
- * Get the refresh token
- * @returns {string|null}
- */
-export const getRefreshToken = () => {
-  return localStorage.getItem(REFRESH_TOKEN_KEY);
-};
+export const getRefreshToken = () => localStorage.getItem(REFRESH_TOKEN_KEY);
 
-/**
- * Remove both tokens (logout)
- */
 export const clearTokens = () => {
   localStorage.removeItem(ACCESS_TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
 };
 
-/**
- * Check if user is authenticated (has a non-expired token)
- * @returns {boolean}
- */
-export const isAuthenticated = () => {
-  const token = getAccessToken();
-  if (!token) return false;
-  
-  try {
-    const decoded = decodeToken(token);
-    // Check if token has expired
-    const currentTime = Date.now() / 1000;
-    return decoded.exp > currentTime;
-  } catch (error) {
-    return false;
-  }
-};
-
-/**
- * Decode JWT token without verifying signature
- * @param {string} token - JWT token
- * @returns {object|null} Decoded payload or null if invalid
- */
 export const decodeToken = (token) => {
   try {
     const base64Url = token.split('.')[1];
@@ -94,42 +46,51 @@ export const decodeToken = (token) => {
   }
 };
 
+export const isAuthenticated = () => {
+  const token = getAccessToken();
+  if (!token) return false;
+  const decoded = decodeToken(token);
+  if (!decoded) return false;
+  const currentTime = Date.now() / 1000;
+  return decoded.exp > currentTime;
+};
+
 /**
- * Get user roles from token
- * @returns {string[]} Array of role names (e.g., ['ROLE_ADMIN', 'ROLE_USER'])
+ * Get user roles from token.
+ * Supports both array (authorities/roles) and single string (role) claims.
+ * @returns {string[]} Array of role names with 'ROLE_' prefix
  */
 export const getUserRoles = () => {
   const token = getAccessToken();
   if (!token) return [];
-  
   const decoded = decodeToken(token);
-  // Spring Boot often puts authorities in 'authorities' or 'roles' claim
-  return decoded?.authorities || decoded?.roles || [];
+  if (!decoded) return [];
+
+  // Case 1: authorities array (Spring Boot standard)
+  if (decoded.authorities && Array.isArray(decoded.authorities)) {
+    return decoded.authorities;
+  }
+  // Case 2: roles array
+  if (decoded.roles && Array.isArray(decoded.roles)) {
+    return decoded.roles;
+  }
+  // Case 3: single role claim (string)
+  if (decoded.role && typeof decoded.role === 'string') {
+    // Ensure it starts with ROLE_
+    const role = decoded.role.startsWith('ROLE_') ? decoded.role : `ROLE_${decoded.role}`;
+    return [role];
+  }
+  return [];
 };
 
-/**
- * Check if user has a specific role
- * @param {string} role - Role to check (e.g., 'ADMIN', 'ROLE_ADMIN')
- * @returns {boolean}
- */
 export const hasRole = (role) => {
   const roles = getUserRoles();
   const formattedRole = role.startsWith('ROLE_') ? role : `ROLE_${role}`;
   return roles.includes(formattedRole);
 };
 
-/**
- * Check if user is admin
- * @returns {boolean}
- */
-export const isAdmin = () => {
-  return hasRole('ADMIN');
-};
+export const isAdmin = () => hasRole('ADMIN');
 
-/**
- * Get user ID from token (if present in claims)
- * @returns {string|null}
- */
 export const getUserId = () => {
   const token = getAccessToken();
   if (!token) return null;
@@ -137,10 +98,6 @@ export const getUserId = () => {
   return decoded?.userId || decoded?.sub || null;
 };
 
-/**
- * Get token expiration timestamp (seconds since epoch)
- * @returns {number|null}
- */
 export const getTokenExpiration = () => {
   const token = getAccessToken();
   if (!token) return null;
@@ -148,11 +105,6 @@ export const getTokenExpiration = () => {
   return decoded?.exp || null;
 };
 
-/**
- * Check if token is about to expire (within given seconds)
- * @param {number} secondsThreshold - Default 60 seconds
- * @returns {boolean}
- */
 export const isTokenExpiringSoon = (secondsThreshold = 60) => {
   const exp = getTokenExpiration();
   if (!exp) return true;
