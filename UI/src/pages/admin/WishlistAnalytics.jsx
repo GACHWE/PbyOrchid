@@ -98,7 +98,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Heart, TrendingUp, BarChart3, ArrowUpRight, Zap } from 'lucide-react';
-import { getTopWishlisted } from '../../api/analytics';
+import { getAdminOverview } from '../../api/analytics'; // changed import
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 export default function WishlistAnalytics() {
@@ -112,9 +112,19 @@ export default function WishlistAnalytics() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const data = await getTopWishlisted(10);
-        setTopWishlisted(data || []);
-        // For trends, we might need another endpoint; for now, use mock or derive
+        // Single API call to get all admin overview data
+        const data = await getAdminOverview();
+        // Extract topWishlisted from the response
+        // The backend returns List<WishlistCount> with fields: productId, productName, count
+        const wishlistData = data.topWishlisted || [];
+        // Map to the format expected by the chart (name, count)
+        const formattedWishlist = wishlistData.map(item => ({
+          name: item.productName,
+          count: item.count
+        }));
+        setTopWishlisted(formattedWishlist);
+        
+        // For trends, we still use mock data (or you can implement a separate endpoint later)
         setWishlistTrends([
           { week: 'Week 1', count: 120 },
           { week: 'Week 2', count: 150 },
@@ -132,6 +142,9 @@ export default function WishlistAnalytics() {
 
   if (loading) return <div className="p-12 text-center">Loading wishlist data...</div>;
   if (error) return <div className="p-12 text-center text-neon-pink">Error: {error}</div>;
+
+  // Calculate total saves (sum of counts)
+  const totalSaves = topWishlisted.reduce((sum, p) => sum + (p.count || 0), 0);
 
   return (
     <div className="space-y-10">
@@ -170,7 +183,7 @@ export default function WishlistAnalytics() {
           </div>
         </div>
 
-        {/* Wishlist Trends */}
+        {/* Wishlist Trends (mock for now) */}
         <div className="bg-dark-card border border-dark-border p-8 rounded-3xl" data-aos="fade-up" data-aos-delay="100">
           <h3 className="text-xl font-black tracking-tighter italic uppercase mb-8">Wishlist Growth</h3>
           <div className="h-[400px] w-full">
@@ -215,9 +228,7 @@ export default function WishlistAnalytics() {
             <BarChart3 size={24} />
           </div>
           <h4 className="text-lg font-black tracking-tighter italic uppercase mb-2">Total Saves</h4>
-          <p className="text-3xl font-black text-neon-pink mb-4">
-            {topWishlisted.reduce((sum, p) => sum + (p.count || 0), 0).toLocaleString()}
-          </p>
+          <p className="text-3xl font-black text-neon-pink mb-4">{totalSaves.toLocaleString()}</p>
           <p className="text-xs text-gray-500 font-bold uppercase tracking-widest leading-relaxed">Cumulative wishlist saves across all products.</p>
         </div>
       </div>

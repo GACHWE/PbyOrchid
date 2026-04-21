@@ -217,10 +217,10 @@ export default function Cart() {
 
                   <div className="text-center sm:text-right">
                     <p className="text-2xl font-black text-tertiary-accent">
-                      ${(item.price * item.quantity).toFixed(2)}
+                      Ksh {(item.price * item.quantity).toFixed(2)}
                     </p>
                     <p className="text-[10px] text-app-text-muted font-bold uppercase tracking-widest mt-1">
-                      ${item.price} each
+                      Ksh {item.price} each
                     </p>
                   </div>
                 </motion.div>

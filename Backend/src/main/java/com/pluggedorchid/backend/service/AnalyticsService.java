@@ -1,143 +1,121 @@
 package com.pluggedorchid.backend.service;
 
-import com.pluggedorchid.backend.dto.AnalyticsEventRequest;
-import com.pluggedorchid.backend.entity.AnalyticsEvent;
-import com.pluggedorchid.backend.repository.AnalyticsEventRepository;
+import com.pluggedorchid.backend.entity.Order;
+import com.pluggedorchid.backend.entity.OrderStatus;
+import com.pluggedorchid.backend.repository.OrderRepository;
+import com.pluggedorchid.backend.repository.ProductRepository;
+import com.pluggedorchid.backend.repository.UserRepository;
+import com.pluggedorchid.backend.repository.WishlistRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class AnalyticsService {
 
-    private final AnalyticsEventRepository analyticsEventRepository;
-    private final JdbcTemplate jdbcTemplate;
-
-    // -----------------------------------------------------------------
-    // Event logging
-    // -----------------------------------------------------------------
-
-    @Async
-    @Transactional
-    public void logEvent(AnalyticsEventRequest request) {
-        AnalyticsEvent event = new AnalyticsEvent();
-        event.setEventType(request.eventType());
-        event.setProductId(request.productId());
-        event.setSessionId(request.sessionId());
-        event.setIpHash(request.ipHash());
-        event.setMetadata(request.metadata());
-        analyticsEventRepository.save(event);
-        log.debug("Logged analytics event: {}", request.eventType());
-    }
-
-    // -----------------------------------------------------------------
-    // Materialized view refresh (scheduled)
-    // -----------------------------------------------------------------
-
-    @Scheduled(cron = "0 0 * * * *") // every hour
-    @Transactional
-    public void refreshMaterializedViews() {
-        log.info("Refreshing materialized views...");
-        analyticsEventRepository.refreshDailyRevenueView();
-        analyticsEventRepository.refreshTopSellersView();
-        analyticsEventRepository.refreshTopWishlistedView();
-        analyticsEventRepository.refreshVisitorStatsView();
-        log.info("Materialized views refreshed.");
-    }
-
-    // -----------------------------------------------------------------
-    // Query methods for materialized views
-    // -----------------------------------------------------------------
+    private final OrderRepository orderRepository;
+    private final ProductRepository productRepository;
+    private final UserRepository userRepository;
+    private final WishlistRepository wishlistRepository;
 
     @Transactional(readOnly = true)
-    public List<DailyRevenue> getDailyRevenue(LocalDate start, LocalDate end) {
-        String sql = """
-            SELECT date, total_revenue, order_count
-            FROM mv_daily_revenue
-            WHERE date BETWEEN ? AND ?
-            ORDER BY date
-            """;
-        return jdbcTemplate.query(sql,
-                (rs, rowNum) -> new DailyRevenue(
-                        rs.getDate("date").toLocalDate(),
-                        rs.getBigDecimal("total_revenue"),
-                        rs.getInt("order_count")
-                ),
-                start, end);
-    }
+    public AdminOverview getAdminOverview() {
+        // 1. Revenue totals
+        BigDecimal totalRevenueAll = orderRepository.sumAllOrderTotals();
+        BigDecimal totalRevenueDelivered = orderRepository.sumByStatus(OrderStatus.DELIVERED);
 
-    @Transactional(readOnly = true)
-    public List<TopSeller> getTopSellers(int limit) {
-        String sql = """
-            SELECT product_id, product_name, total_sold, total_revenue
-            FROM mv_top_sellers
-            ORDER BY total_sold DESC
-            LIMIT ?
-            """;
-        return jdbcTemplate.query(sql,
-                (rs, rowNum) -> new TopSeller(
-                        rs.getObject("product_id", java.util.UUID.class),
-                        rs.getString("product_name"),
-                        rs.getInt("total_sold"),
-                        rs.getBigDecimal("total_revenue")
-                ),
-                limit);
-    }
+        // 2. Total orders
+        long totalOrders = orderRepository.count();
 
-    @Transactional(readOnly = true)
-    public List<TopWishlisted> getTopWishlisted(int limit) {
-        String sql = """
-            SELECT product_id, product_name, wishlist_count
-            FROM mv_top_wishlisted
-            ORDER BY wishlist_count DESC
-            LIMIT ?
-            """;
-        return jdbcTemplate.query(sql,
-                (rs, rowNum) -> new TopWishlisted(
-                        rs.getObject("product_id", java.util.UUID.class),
-                        rs.getString("product_name"),
-                        rs.getInt("wishlist_count")
-                ),
-                limit);
-    }
+        // 3. Total users (registered)
+        long totalUsers = userRepository.count();
 
-    @Transactional(readOnly = true)
-    public List<VisitorStats> getVisitorStats(LocalDate start, LocalDate end) {
-        String sql = """
-            SELECT date, unique_visitors, page_views
-            FROM mv_visitor_stats
-            WHERE date BETWEEN ? AND ?
-            ORDER BY date
-            """;
-        return jdbcTemplate.query(sql,
-                (rs, rowNum) -> new VisitorStats(
-                        rs.getDate("date").toLocalDate(),
-                        rs.getInt("unique_visitors"),
-                        rs.getInt("page_views")
-                ),
-                start, end);
+        // 4. Active products (non-deleted)
+        long totalProducts = productRepository.countByDeletedFalse();
+
+        // 5. Active authenticated visitors (last 5 minutes)
+        LocalDateTime fiveMinutesAgo = LocalDateTime.now().minusMinutes(5);
+        long activeVisitors = userRepository.countActiveSince(fiveMinutesAgo);
+
+        // 6. Orders count per status
+        Map<OrderStatus, Long> ordersCountByStatus = new EnumMap<>(OrderStatus.class);
+        for (OrderStatus status : OrderStatus.values()) {
+            ordersCountByStatus.put(status, orderRepository.countByStatus(status));
+        }
+
+        // 7. Revenue per status
+        Map<OrderStatus, BigDecimal> revenueByStatus = new EnumMap<>(OrderStatus.class);
+        for (OrderStatus status : OrderStatus.values()) {
+            revenueByStatus.put(status, orderRepository.sumByStatus(status));
+        }
+
+        // 8. Top 5 wishlisted products
+        List<WishlistCount> topWishlisted = new ArrayList<>();
+        Pageable topFive = PageRequest.of(0, 5);
+        List<Object[]> results = wishlistRepository.getWishlistCountsGrouped(topFive);
+        for (Object[] row : results) {
+            UUID productId = (UUID) row[0];
+            Long count = (Long) row[1];
+            productRepository.findById(productId).ifPresent(product ->
+                    topWishlisted.add(new WishlistCount(productId, product.getName(), count))
+            );
+        }
+
+        // 9. Recent orders (last 5)
+        List<RecentOrder> recentOrders = new ArrayList<>();
+        Pageable recentPage = PageRequest.of(0, 5);
+        List<Order> latestOrders = orderRepository.findTop5ByOrderByCreatedAtDesc(recentPage);
+        for (Order order : latestOrders) {
+            String customerName = order.getUser().getFirstName() + " " + order.getUser().getLastName();
+            recentOrders.add(new RecentOrder(
+                    order.getId(),
+                    order.getTotalAmount(),
+                    order.getStatus(),
+                    customerName,
+                    order.getCreatedAt()
+            ));
+        }
+
+        return new AdminOverview(
+                totalRevenueAll,
+                totalRevenueDelivered,
+                totalOrders,
+                totalUsers,
+                totalProducts,
+                activeVisitors,
+                ordersCountByStatus,
+                revenueByStatus,
+                topWishlisted,
+                recentOrders
+        );
     }
 
     // -----------------------------------------------------------------
-    // DTOs (records) for query results
+    // DTOs (records)
     // -----------------------------------------------------------------
+    public record AdminOverview(
+            BigDecimal totalRevenueAll,
+            BigDecimal totalRevenueDelivered,
+            long totalOrders,
+            long totalUsers,
+            long totalProducts,
+            long activeVisitors,
+            Map<OrderStatus, Long> ordersCountByStatus,
+            Map<OrderStatus, BigDecimal> revenueByStatus,
+            List<WishlistCount> topWishlisted,
+            List<RecentOrder> recentOrders
+    ) {}
 
-    public record DailyRevenue(LocalDate date, BigDecimal totalRevenue, int orderCount) {}
+    public record WishlistCount(UUID productId, String productName, long count) {}
 
-    public record TopSeller(UUID productId, String productName, int totalSold, BigDecimal totalRevenue) {}
-
-    public record TopWishlisted(UUID productId, String productName, int wishlistCount) {}
-
-    public record VisitorStats(LocalDate date, int uniqueVisitors, int pageViews) {}
+    public record RecentOrder(UUID orderId, BigDecimal amount, OrderStatus status, String customerName, LocalDateTime createdAt) {}
 }

@@ -233,9 +233,9 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Scroll effect
+  // Scroll effect with smoother transition
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    const handleScroll = () => setIsScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -253,7 +253,7 @@ export default function Navbar() {
 
   const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
-  // Smart active nav logic (handles gender filters correctly)
+  // Smart active nav logic
   const params = new URLSearchParams(location.search);
   const currentGender = params.get("gender");
 
@@ -286,40 +286,44 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
         isScrolled
-          ? "bg-app-bg/95 backdrop-blur-xl border-b border-app-border shadow-lg py-3"
-          : "bg-transparent py-5"
+          ? "bg-app-bg/90 backdrop-blur-2xl border-b border-app-border/50 shadow-lg py-2"
+          : "bg-transparent py-4"
       }`}
     >
       <div className="container mx-auto px-4 flex items-center justify-between">
-        {/* Logo */}
+        {/* Logo with enhanced animation */}
         <Link
           to="/"
-          className="flex items-center gap-2 group relative z-10 transition-transform hover:scale-105"
+          className="flex items-center gap-2 group relative z-10"
           aria-label="Home"
         >
-          <span className="text-2xl md:text-3xl font-black tracking-tighter italic bg-gradient-to-r from-primary-accent to-secondary-accent bg-clip-text text-transparent">
+          <motion.span
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.98 }}
+            className="text-2xl md:text-3xl font-black tracking-tighter italic bg-gradient-to-r from-primary-accent via-secondary-accent to-tertiary-accent bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient"
+          >
             PLUGGED
-          </span>
+          </motion.span>
         </Link>
 
-        {/* Desktop Navigation Links */}
+        {/* Desktop Navigation Links - refined with spring animations */}
         <div className="hidden md:flex items-center gap-8 font-bold text-sm uppercase tracking-widest">
           {navItems.map((item) => (
             <Link
               key={item.label}
               to={item.path}
-              className={`relative transition-colors hover:text-primary-accent ${
-                isNavActive(item) ? "text-primary-accent" : "text-gray-400"
+              className={`relative transition-colors duration-300 hover:text-primary-accent ${
+                isNavActive(item) ? "text-primary-accent" : "text-app-text-muted"
               }`}
             >
               {item.label}
               {isNavActive(item) && (
                 <motion.span
                   layoutId="activeNav"
-                  className="absolute -bottom-1 left-0 w-full h-0.5 bg-primary-accent rounded-full"
-                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  className="absolute -bottom-1 left-0 w-full h-0.5 bg-gradient-to-r from-primary-accent to-secondary-accent rounded-full"
+                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
                 />
               )}
             </Link>
@@ -328,10 +332,10 @@ export default function Navbar() {
           {user?.role === "admin" && (
             <Link
               to="/admin"
-              className={`flex items-center gap-1 transition-colors ${
+              className={`flex items-center gap-1 transition-colors duration-300 ${
                 location.pathname === "/admin"
                   ? "text-tertiary-accent"
-                  : "text-gray-400 hover:text-tertiary-accent"
+                  : "text-app-text-muted hover:text-tertiary-accent"
               }`}
             >
               <LayoutDashboard size={16} /> Admin
@@ -339,127 +343,131 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Persistent Desktop Search Bar - Major UX upgrade */}
-        {/* <div className="hidden md:flex flex-1 max-w-md mx-6">
-          <form onSubmit={handleSearch} className="relative w-full group">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search premium tech gear..."
-              className="w-full px-6 py-3 rounded-full bg-app-card border border-app-border focus:outline-none focus:border-primary-accent focus:ring-1 focus:ring-primary-accent text-sm transition-all duration-300"
-            />
-            <button
-              type="submit"
-              className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary-accent transition-colors"
-              aria-label="Search"
-            >
-              <Search size={20} />
-            </button>
-          </form>
-        </div> */}
-        {/* Persistent Desktop Search - Reusable Component */}
-<SearchComponent 
-  placeholder="Search premium tech gear..." 
-  className="hidden md:flex flex-1 max-w-md mx-6"
-/>
+        {/* Desktop Search Component */}
+        <SearchComponent
+          placeholder="Search premium tech gear..."
+          className="hidden md:flex flex-1 max-w-md mx-6"
+        />
 
-        {/* Action Icons */}
-        <div className="flex items-center gap-3 md:gap-5">
-          {/* Theme Toggle */}
-          <button
+        {/* Action Icons with micro-interactions */}
+        <div className="flex items-center gap-2 md:gap-4">
+          {/* Theme Toggle with rotation animation */}
+          <motion.button
+            whileHover={{ scale: 1.1, rotate: 10 }}
+            whileTap={{ scale: 0.9 }}
             onClick={toggleTheme}
-            className="w-10 h-10 rounded-full bg-app-card border border-app-border flex items-center justify-center hover:text-primary-accent hover:scale-110 transition-all duration-300"
+            className="w-10 h-10 rounded-full bg-app-card/80 backdrop-blur-sm border border-app-border flex items-center justify-center hover:text-primary-accent transition-colors duration-300"
             aria-label="Toggle theme"
           >
-            {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
-          </button>
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={theme}
+                initial={{ y: -20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: 20, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+              </motion.div>
+            </AnimatePresence>
+          </motion.button>
 
-          {/* Wishlist */}
+          {/* Wishlist with bounce animation on count change (optional) */}
           <Link
             to="/wishlist"
-            className="relative hover:text-primary-accent hover:scale-110 transition-all duration-300"
+            className="relative group"
             aria-label="Wishlist"
           >
-            <Heart size={22} />
+            <motion.div
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className="p-2 rounded-full hover:bg-primary-accent/10 transition-colors duration-300"
+            >
+              <Heart size={22} className="group-hover:text-primary-accent transition-colors" />
+            </motion.div>
             {wishlistCount > 0 && (
-              <span className="absolute -top-2 -right-2 bg-secondary-accent text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold text-white shadow-lg">
+              <motion.span
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="absolute -top-1 -right-1 bg-secondary-accent text-[10px] min-w-[20px] h-5 px-1 rounded-full flex items-center justify-center font-bold text-white shadow-lg"
+              >
                 {wishlistCount > 9 ? "9+" : wishlistCount}
-              </span>
+              </motion.span>
             )}
           </Link>
 
-          {/* Cart */}
+          {/* Cart with similar enhancements */}
           <Link
             to="/cart"
-            className="relative hover:text-primary-accent hover:scale-110 transition-all duration-300"
+            className="relative group"
             aria-label="Cart"
           >
-            <ShoppingCart size={22} />
+            <motion.div
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className="p-2 rounded-full hover:bg-primary-accent/10 transition-colors duration-300"
+            >
+              <ShoppingCart size={22} className="group-hover:text-primary-accent transition-colors" />
+            </motion.div>
             {cartCount > 0 && (
-              <span className="absolute -top-2 -right-2 bg-primary-accent text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold text-white shadow-lg neon-glow">
+              <motion.span
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="absolute -top-1 -right-1 bg-primary-accent text-[10px] min-w-[20px] h-5 px-1 rounded-full flex items-center justify-center font-bold text-white shadow-lg neon-glow"
+              >
                 {cartCount > 9 ? "9+" : cartCount}
-              </span>
+              </motion.span>
             )}
           </Link>
 
           {/* User Area */}
           {isAuthenticated ? (
             <div className="relative">
-              <button
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
-                className="flex items-center gap-2 hover:text-primary-accent hover:scale-110 transition-all duration-300 group"
+                className="flex items-center gap-2 group"
                 aria-label="User menu"
                 aria-expanded={isUserDropdownOpen}
               >
-                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-accent to-secondary-accent flex items-center justify-center shadow-md">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-accent to-secondary-accent flex items-center justify-center shadow-md ring-2 ring-transparent group-hover:ring-primary-accent/50 transition-all duration-300">
                   <User size={18} className="text-white" />
                 </div>
-                <span className="hidden lg:inline text-sm font-bold max-w-[100px] truncate">
+                <span className="hidden lg:inline text-sm font-bold max-w-[100px] truncate group-hover:text-primary-accent transition-colors">
                   {user?.name || user?.email?.split("@")[0]}
                 </span>
-              </button>
+              </motion.button>
 
               <AnimatePresence>
                 {isUserDropdownOpen && (
                   <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="absolute right-0 mt-3 w-56 rounded-2xl bg-app-card border border-app-border shadow-2xl overflow-hidden z-50"
+                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                    transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                    className="absolute right-0 mt-3 w-56 rounded-2xl bg-app-card/95 backdrop-blur-xl border border-app-border shadow-2xl overflow-hidden z-50"
                   >
-                    <div className="p-4 border-b border-app-border">
+                    <div className="p-4 border-b border-app-border bg-gradient-to-r from-primary-accent/5 to-secondary-accent/5">
                       <p className="font-bold text-sm">{user?.name}</p>
-                      <p className="text-xs text-gray-400 truncate">
+                      <p className="text-xs text-app-text-muted truncate">
                         {user?.email}
                       </p>
                     </div>
                     <div className="py-2">
-                      <Link
-                        to="/profile"
-                        className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-app-bg transition-colors"
-                        onClick={() => setIsUserDropdownOpen(false)}
-                      >
-                        <UserCircle size={18} /> Profile
-                      </Link>
-                      <Link
-                        to="/profile/orders"
-                        className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-app-bg transition-colors"
-                        onClick={() => setIsUserDropdownOpen(false)}
-                      >
-                        <Package size={18} /> Orders
-                      </Link>
-                      <Link
-                        to="/profile/settings"
-                        className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-app-bg transition-colors"
-                        onClick={() => setIsUserDropdownOpen(false)}
-                      >
-                        <Settings size={18} /> Settings
-                      </Link>
+                      <DropdownLink to="/profile" icon={<UserCircle size={18} />} onClick={() => setIsUserDropdownOpen(false)}>
+                        Profile
+                      </DropdownLink>
+                      <DropdownLink to="/profile/orders" icon={<Package size={18} />} onClick={() => setIsUserDropdownOpen(false)}>
+                        Orders
+                      </DropdownLink>
+                      <DropdownLink to="/profile/settings" icon={<Settings size={18} />} onClick={() => setIsUserDropdownOpen(false)}>
+                        Settings
+                      </DropdownLink>
                       <hr className="my-1 border-app-border" />
                       <button
                         onClick={handleLogout}
-                        className="flex items-center gap-3 px-4 py-3 text-sm w-full text-left hover:bg-app-bg transition-colors text-red-400 hover:text-red-300"
+                        className="flex items-center gap-3 px-4 py-3 text-sm w-full text-left hover:bg-red-500/10 transition-colors text-red-400 hover:text-red-300"
                       >
                         <LogOut size={18} /> Logout
                       </button>
@@ -469,95 +477,106 @@ export default function Navbar() {
               </AnimatePresence>
             </div>
           ) : (
-            <Link
-              to="/login"
-              className="btn-primary py-2 px-5 text-sm font-bold tracking-wider rounded-full"
-            >
-              Login
-            </Link>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Link
+                to="/login"
+                className="btn-primary py-2 px-5 text-sm font-bold tracking-wider rounded-full shadow-lg hover:shadow-primary-accent/25 transition-shadow"
+              >
+                Login
+              </Link>
+            </motion.div>
           )}
 
-          {/* Mobile Menu Toggle */}
-          <button
-            className="md:hidden hover:text-primary-accent hover:scale-110 transition-all duration-300 relative z-20"
+          {/* Mobile Menu Toggle with hamburger animation */}
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            className="md:hidden p-2 rounded-full hover:bg-app-card/50 transition-colors duration-300 relative z-20"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label="Menu"
             aria-expanded={isMobileMenuOpen}
           >
-            {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
-          </button>
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={isMobileMenuOpen ? "close" : "menu"}
+                initial={{ rotate: -90, opacity: 0 }}
+                animate={{ rotate: 0, opacity: 1 }}
+                exit={{ rotate: 90, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+              </motion.div>
+            </AnimatePresence>
+          </motion.button>
         </div>
       </div>
 
-      {/* Mobile Menu - unchanged but benefits from cleaner parent */}
+      {/* Mobile Menu with enhanced animation */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="absolute top-full left-0 w-full bg-app-bg/95 backdrop-blur-xl border-b border-app-border md:hidden overflow-hidden z-10"
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="absolute top-full left-0 w-full bg-app-bg/95 backdrop-blur-2xl border-b border-app-border md:hidden overflow-hidden z-10"
           >
-            {/* ... (your existing mobile menu content - unchanged) */}
             <div className="flex flex-col py-6 px-4 gap-5 text-center">
               {/* Mobile Search */}
-              {/* <form onSubmit={handleSearch} className="relative w-full">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search products..."
-                  className="w-full px-4 py-3 rounded-full bg-app-card border border-app-border focus:outline-none focus:border-primary-accent"
-                />
-                <button
-                  type="submit"
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
-                >
-                  <Search size={20} />
-                </button>
-              </form> */}
-              {/* Inside your mobile menu */}
-<SearchComponent 
-  placeholder="Search products..." 
-  className="w-full"
-/>
+              <SearchComponent placeholder="Search products..." className="w-full" />
 
-              {/* Mobile Nav Links */}
+              {/* Mobile Nav Links with staggered animation */}
               <div className="flex flex-col gap-5 font-bold text-lg uppercase tracking-wider">
-                {navItems.map((item) => (
-                  <Link
+                {navItems.map((item, index) => (
+                  <motion.div
                     key={item.label}
-                    to={item.path}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="hover:text-primary-accent transition-colors"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
                   >
-                    {item.label}
-                  </Link>
+                    <Link
+                      to={item.path}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="block py-2 hover:text-primary-accent transition-colors"
+                    >
+                      {item.label}
+                    </Link>
+                  </motion.div>
                 ))}
                 {user?.role === "admin" && (
-                  <Link
-                    to="/admin"
-                    className="text-tertiary-accent hover:brightness-110 transition-colors"
-                    onClick={() => setIsMobileMenuOpen(false)}
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: navItems.length * 0.05 }}
                   >
-                    Admin Panel
-                  </Link>
+                    <Link
+                      to="/admin"
+                      className="block py-2 text-tertiary-accent hover:brightness-110 transition-colors"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Admin Panel
+                    </Link>
+                  </motion.div>
                 )}
               </div>
 
               <div className="h-px bg-app-border w-full my-2" />
 
               {/* User section in mobile */}
-              <div className="flex flex-col gap-4">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="flex flex-col gap-4"
+              >
                 {isAuthenticated ? (
                   <>
                     <div className="flex items-center justify-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-accent to-secondary-accent flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-accent to-secondary-accent flex items-center justify-center shadow-lg">
                         <User size={24} className="text-white" />
                       </div>
                       <div className="text-left">
                         <p className="font-bold">{user?.name}</p>
-                        <p className="text-xs text-gray-400">{user?.email}</p>
+                        <p className="text-xs text-app-text-muted">{user?.email}</p>
                       </div>
                     </div>
                     <button
@@ -576,7 +595,7 @@ export default function Navbar() {
                     Login / Register
                   </Link>
                 )}
-              </div>
+              </motion.div>
             </div>
           </motion.div>
         )}
@@ -584,3 +603,19 @@ export default function Navbar() {
     </nav>
   );
 }
+
+// Helper component for dropdown links with hover effect
+const DropdownLink = ({ to, icon, children, onClick }) => (
+  <Link
+    to={to}
+    className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-primary-accent/10 transition-colors duration-200 group"
+    onClick={onClick}
+  >
+    <span className="text-app-text-muted group-hover:text-primary-accent transition-colors">
+      {icon}
+    </span>
+    <span className="group-hover:translate-x-1 transition-transform duration-200">
+      {children}
+    </span>
+  </Link>
+);

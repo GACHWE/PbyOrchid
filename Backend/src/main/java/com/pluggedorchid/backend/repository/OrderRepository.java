@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +22,17 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
 
     @Query("SELECT o FROM Order o WHERE o.createdAt BETWEEN :start AND :end")
     List<Order> findOrdersBetweenDates(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    long countByStatus(OrderStatus status);
+
+    @Query("SELECT COALESCE(SUM(o.totalAmount), 0) FROM Order o")
+    BigDecimal sumAllOrderTotals();
+
+    @Query("SELECT COALESCE(SUM(o.totalAmount), 0) FROM Order o WHERE o.status = :status")
+    BigDecimal sumByStatus(@Param("status") OrderStatus status);
+
+    @Query("SELECT o FROM Order o ORDER BY o.createdAt DESC")
+    List<Order> findTop5ByOrderByCreatedAtDesc(Pageable pageable);
 
     @Query("SELECT COUNT(o) > 0 FROM Order o " +
             "JOIN o.items oi " +

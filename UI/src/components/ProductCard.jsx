@@ -388,7 +388,7 @@ export default function ProductCard({ product, layout = 'grid' }) {
 
         <div className="flex items-center justify-between mt-auto">
           <span className="text-xl font-black text-tertiary-accent">
-            ${product.price}
+            Ksh {product.price}
           </span>
           <button
             onClick={handleAddToCart}

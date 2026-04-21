@@ -34,15 +34,35 @@
 //     </div>
 //   );
 // }
+// AdminLayout.jsx
+import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
+import { Menu } from 'lucide-react';
 import AdminSidebar from '../AdminSidebar';
 
 export default function AdminLayout() {
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
+
   return (
-    <div className="flex min-h-screen bg-yellow-500 text-app-text">
-      <AdminSidebar />
-      <main className="flex-1 p-8 overflow-y-auto">
-        <Outlet />
+    <div className="flex min-h-screen text-app-text">
+      <AdminSidebar isSidebarOpen={isSidebarOpen} setSidebarOpen={setSidebarOpen} />
+
+      <main className="flex-1 overflow-y-auto">
+        {/* Mobile header with hamburger button */}
+        <div className="sticky top-0 z-30 flex items-center p-4 bg-app-card border-b border-app-border md:hidden">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="p-2 rounded-lg hover:bg-app-bg transition-colors"
+            aria-label="Open sidebar"
+          >
+            <Menu size={24} />
+          </button>
+          <h1 className="ml-4 text-xl font-bold">Admin</h1>
+        </div>
+
+        <div className="p-4 md:p-8">
+          <Outlet />
+        </div>
       </main>
     </div>
   );

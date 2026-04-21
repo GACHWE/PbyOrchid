@@ -42,7 +42,7 @@ public class WebSecurityConfig {
                         // User endpoints
                         .requestMatchers("/api/v1/wishlist/**").hasRole("USER")
                         // Admin endpoints – fix patterns to match actual URLs
-                        .requestMatchers("/api/v1/admin/**","/api/v1/orders/admin/**", "/api/v1/analytics/admin/**", "/api/v1/orders/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/admin/**","/api/v1/orders/admin/**", "/api/v1/analytics/admin/overview", "api/v1/admin/users/**").hasRole("ADMIN")
                         // Everything else requires authentication
                         .anyRequest().authenticated()
                 )
