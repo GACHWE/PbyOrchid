@@ -364,9 +364,9 @@ export default function Product() {
           <h1 className="text-5xl md:text-6xl font-black tracking-tighter italic mb-6 leading-none">{product.name}</h1>
           
           <div className="flex items-center gap-6 mb-8">
-            <span className="text-4xl font-black text-neon-green">${product.price}</span>
+            <span className="text-4xl font-black text-neon-green">Ksh {product.price}</span>
             {product.originalPrice && product.originalPrice > product.price && (
-              <span className="text-gray-500 line-through text-xl">${product.originalPrice}</span>
+              <span className="text-gray-500 line-through text-xl">Ksh {product.originalPrice}</span>
             )}
             <span className="text-gray-500 font-bold uppercase tracking-widest text-xs">Free Shipping</span>
           </div>

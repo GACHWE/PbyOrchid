@@ -120,7 +120,7 @@ export default function AdminOrders() {
                 </td>
                 <td className="p-4">{order.recipientName || "—"}</td>
                 <td className="p-4">{order.whatsappNumber || "—"}</td>
-                <td className="p-4 font-bold">${order.totalAmount}</td>
+                <td className="p-4 font-bold">Ksh {order.totalAmount}</td>
                 <td className="p-4">
                   <span className={getStatusBadge(order.status)}>
                     {order.status}

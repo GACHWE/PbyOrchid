@@ -330,7 +330,7 @@ export default function Checkout() {
                     <p className="text-[10px] text-app-text-muted font-bold uppercase tracking-widest">
                       {item.size} / {item.color} &nbsp;| Qty: {item.quantity}
                     </p>
-                    <p className="text-tertiary-accent font-bold text-sm mt-1">${(item.price * item.quantity).toFixed(2)}</p>
+                    <p className="text-tertiary-accent font-bold text-sm mt-1">Ksh {(item.price * item.quantity).toFixed(2)}</p>
                   </div>
                 </div>
               ))}
@@ -338,7 +338,7 @@ export default function Checkout() {
             <div className="mt-6 pt-4 border-t border-app-border">
               <div className="flex justify-between items-end">
                 <span className="text-xl font-black italic">TOTAL</span>
-                <span className="text-3xl font-black text-primary-accent">${total.toFixed(2)}</span>
+                <span className="text-3xl font-black text-primary-accent">Ksh {total.toFixed(2)}</span>
               </div>
             </div>
           </motion.div>

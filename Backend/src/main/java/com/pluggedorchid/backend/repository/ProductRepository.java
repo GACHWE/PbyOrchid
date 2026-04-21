@@ -50,4 +50,5 @@ public interface ProductRepository extends JpaRepository<Product, UUID>, JpaSpec
     Page<Product> findFeaturedProducts(Pageable pageable);
 
     boolean existsBySlug(String slug);
+    long countByDeletedFalse();
 }

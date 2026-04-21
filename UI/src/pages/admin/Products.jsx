@@ -141,7 +141,7 @@ const ProductRow = React.memo(({ product, onNewArrivalToggle, onEdit, onDelete, 
   <tr className="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
     <td className="p-4 md:p-6">
       <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-xl overflow-hidden bg-gray-100 dark:bg-dark-bg border border-gray-200 dark:border-dark-border flex-shrink-0">
+        <div className="w-12 h-12 rounded-xl overflow-hidden bg-gray-100 dark:bg-dark-bg border border-gray-200 dark:border-dark-border shrink-0">
           <img
             src={thumbnail}
             className="w-full h-full object-cover"
@@ -154,9 +154,9 @@ const ProductRow = React.memo(({ product, onNewArrivalToggle, onEdit, onDelete, 
           <p className="font-bold text-sm text-gray-900 dark:text-white truncate">
             {product.name}
           </p>
-          <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
+          {/* <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
             {product.category?.name || 'Uncategorized'}
-          </p>
+          </p> */}
         </div>
       </div>
     </td>
